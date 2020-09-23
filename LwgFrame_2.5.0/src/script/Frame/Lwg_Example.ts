@@ -2,7 +2,7 @@ import { Admin } from "./lwg";
 
 /**测试模块,每个模块分开，默认导出一个类，这个类是默认挂载的脚本类，如果有多个脚本，
  * 那么在这个默认类中进行添加，或者在其他地方动态添加*/
-export module LwgExample {
+export module Lwg_Example {
 
     /**数据表和其中的数据增删改查*/
     export let data = {
@@ -99,17 +99,17 @@ export module LwgExample {
 
 }
 /**可以手动挂在脚本中的类，全脚本唯一的默认导出，也可动态添加，动态添加写在模块内更方便*/
-export default class UIExample extends LwgExample.ExampleScene {
+export default class UIExample extends Lwg_Example.ExampleScene {
     lwgOnAwake(): void {
         // 模块中临时变量赋值方法,这种赋值必须只用在当前脚本，否则必须枚举
-        LwgExample['name'] = '大王哥';
-        console.log(LwgExample, parent, LwgExample['name']);
+        Lwg_Example['name'] = '大王哥';
+        console.log(Lwg_Example, parent, Lwg_Example['name']);
         // 类中
         this['name'] = '老王哥';
         console.log(this, this['name']);
         // 数据表
-        LwgExample.data.getFunc2('any');
-        LwgExample.data.setFunc2('测试设置');
+        Lwg_Example.data.getFunc2('any');
+        Lwg_Example.data.setFunc2('测试设置');
     }
     lwgNodeDec(): void { }
     lwgOnEnable(): void { }
@@ -121,7 +121,7 @@ export default class UIExample extends LwgExample.ExampleScene {
     lwgOnUpdate(): void { }
     lwgOnDisable(): void { }
 }
-export class UIExampleItem extends Admin.Object {
+export class UIExampleItem extends Admin._Object {
 
 }
 

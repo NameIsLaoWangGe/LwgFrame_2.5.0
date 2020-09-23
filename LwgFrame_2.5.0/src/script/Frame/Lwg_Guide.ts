@@ -88,7 +88,7 @@ export default class UIGuide extends Lwg_Guide.GuideScene {
             }
         });
 
-        TimerAdmin.frameLoop(1, this, () => {
+        TimerAdmin._frameLoop(1, this, () => {
             let DrawCanvas = this.self['Hand'].getChildByName('DrawCanvas');
             if (DrawCanvas) {
                 if (this['drawLinePos']) {

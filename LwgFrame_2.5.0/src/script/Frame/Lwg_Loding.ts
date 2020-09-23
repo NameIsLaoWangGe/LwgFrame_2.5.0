@@ -1,4 +1,5 @@
 import { Admin, DateAdmin, EventAdmin, Loding, PalyAudio } from "./lwg";
+import GameScene from "./Lwg_Game";
 import UIInit from "./Lwg_Init";
 import UIStart from "./Lwg_Start";
 export default class UILoding extends Loding.LodingScene {
@@ -49,6 +50,7 @@ export default class UILoding extends Loding.LodingScene {
             UILoding: UILoding,
             UIInit: UIInit,
             UIStart: UIStart,
+            GameScene: GameScene,
         }
     }
     lwgAdaptive(): void {
