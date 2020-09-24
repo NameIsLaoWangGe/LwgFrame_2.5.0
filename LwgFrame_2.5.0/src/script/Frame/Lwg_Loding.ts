@@ -4,7 +4,6 @@ import UIInit from "./Lwg_Init";
 import UIStart from "./Lwg_Start";
 export default class UILoding extends Loding.LodingScene {
     lwgOnAwake(): void {
-        console.log(window);
         Loding.list_2DPic = [
             // "res/atlas/Frame/Effects.png",
             // "res/atlas/Frame/UI.png",

@@ -1917,49 +1917,71 @@ export module lwg {
 
         /**粒子模块*/
         export module _particle {
+            export class ImgBase extends Laya.Image {
+                /**
+                 * 图片初始值设置
+                 * Creates an instance of ImgBase.
+                 * @param parent 父节点
+                 * @param caller 执行域
+                 * @param centerPoint 中心点
+                 * @param PosSection 宽高延伸[a,b]
+                 * @param distance 移动距离，区间[a,b]，随机移动一定的距离后消失;
+                 * @param width 粒子的宽度区间[a,b]
+                 * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
+                 * @param urlArr 图片地址集合，默认为框架中随机的样式
+                 * @param colorRGBA 上色色值区间[[R,G,B,A],[R,G,B,A]]
+                 * @param zOder 层级，默认为0
+                 */
+                constructor(parent: Laya.Sprite, centerPoint?: Laya.Point, PosSection?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number) {
+                    super();
+                    parent.addChild(this);
+                    let sectionWidth = PosSection ? Tools.randomOneNumer(PosSection[0], PosSection[1]) : Tools.randomOneNumer(-200, 200);
+                    let sectionHeight = PosSection ? Tools.randomOneNumer(PosSection[1], PosSection[1]) : Tools.randomOneNumer(-25, 25);
+                    this.x = centerPoint ? centerPoint.x + sectionWidth : sectionWidth;
+                    this.y = centerPoint ? centerPoint.y + sectionHeight : sectionHeight;
+                    width = width ? width : [25, 50];
+                    this.width = Tools.randomOneNumer(width[0], width[1]);
+                    this.height = height ? Tools.randomOneNumer(height[0], height[1]) : this.width;
+                    this.pivotX = this.width / 2;
+                    this.pivotY = this.height / 2;
+                    this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl[Tools.randomOneNumer(0, 12)];
+                    this.alpha = 0;
+                    this.zOrder = zOder ? zOder : 0;
+                    let RGBA = [];
+                    RGBA[0] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumer(100, 255);
+                    RGBA[1] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumer(100, 255);
+                    RGBA[2] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumer(100, 255);
+                    RGBA[3] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumer(100, 255);
+                    Color._colour(this, RGBA);
+                }
+            }
             /**
               * 发射一个垂直向下的粒子，类似于火星下落熄灭，水滴下落被蒸发,下雪，不是下雨状态
               * @param parent 父节点
               * @param caller 执行域
               * @param centerPoint 中心点
-              * @param section 宽高延伸[a,b]
-              * @param distance 移动距离，区间[a,b]，随机移动一定的距离后消失;
+              * @param WHsection 宽高延伸[a,b]
               * @param width 粒子的宽度区间[a,b]
               * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
               * @param urlArr 图片地址集合，默认为框架中随机的样式
               * @param colorRGBA 上色色值区间[[R,G,B,A],[R,G,B,A]]
+              * @param zOder 层级，默认为0
+              * @param distance 移动距离，区间[a,b]，在其中随机移动一定的距离后消失;
               * @param speed 吸入速度区间[a,b]
               * @param accelerated 加速度区间[a,b]
-              * @param zOder 层级，默认为0
               */
-            export function _fallingVertical(parent, centerPoint?: Laya.Point, section?: Array<number>, distance?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, speed?: Array<number>, accelerated?: Array<number>, zOder?: number): void {
-                let Img = new Laya.Image();
-                parent.addChild(Img);
-                let sectionWidth = section ? Tools.randomCountNumer(section[0], section[1])[0] : Tools.randomCountNumer(-200, 200)[0];
-                let sectionHeight = section ? Tools.randomCountNumer(section[1], section[1])[0] : Tools.randomCountNumer(-25, 25)[0];
-                Img.x = centerPoint ? centerPoint.x + sectionWidth : sectionWidth;
-                Img.y = centerPoint ? centerPoint.y + sectionHeight : sectionHeight;
-                width = width ? width : [25, 50];
-                Img.width = Tools.randomCountNumer(width[0], width[1])[0];
-                Img.height = height ? Tools.randomCountNumer(height[0], height[1])[0] : Img.width;
-                Img.pivotX = Img.width / 2;
-                Img.pivotY = Img.height / 2;
-                Img.skin = urlArr ? Tools.arrayRandomGetOut(urlArr)[0] : _SkinUrl[Tools.randomCountNumer(0, 12)[0]];
-                Img.alpha = 0;
-                let speed0 = speed ? Tools.randomCountNumer(speed[0], speed[1])[0] : Tools.randomCountNumer(4, 8)[0];
-                let accelerated0 = accelerated ? Tools.randomCountNumer(accelerated[0], accelerated[1])[0] : Tools.randomCountNumer(0.25, 0.45)[0];
+            export function _fallingVertical(parent, centerPoint?: Laya.Point, PosSection?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number, distance?: Array<number>, speed?: Array<number>, accelerated?: Array<number>,): void {
+                let Img = new ImgBase(parent, centerPoint, PosSection, width, height, urlArr, colorRGBA, zOder);
+                let speed0 = speed ? Tools.randomOneNumer(speed[0], speed[1]) : Tools.randomOneNumer(4, 8);
+                let accelerated0 = accelerated ? Tools.randomOneNumer(accelerated[0], accelerated[1]) : Tools.randomOneNumer(0.25, 0.45);
                 let acc = 0;
                 let caller = {
                     alpha: true,
                     move: false,
                     vinish: false,
                 };
-                if (colorRGBA) {
-                    Color._colour(Img, [])
-                }
-                zOder ? Img.zOrder = zOder : 0;
                 let distance0 = 0;
-                let distance1 = distance ? Tools.randomCountNumer(distance[0], distance[1])[0] : Tools.randomCountNumer(100, 300)[0];
+                let distance1 = distance ? Tools.randomOneNumer(distance[0], distance[1]) : Tools.randomOneNumer(100, 300);
                 TimerAdmin._frameLoop(1, caller, () => {
                     if (Img.alpha < 1 && caller.alpha) {
                         Img.alpha += 0.05;
@@ -1987,6 +2009,62 @@ export module lwg {
                         }
                     }
                 })
+            }
+
+            /**
+             * 徐徐向上，类似于蒸汽上升，烟雾上升，光点上升
+             * @param parent 父节点
+             * @param caller 执行域
+             * @param centerPoint 中心点
+             * @param radius 半径区间[a,b]
+             * @param rotation 角度区间，默认为360
+             * @param width 粒子的宽度区间[a,b]
+             * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
+             * @param urlArr 图片地址集合，默认为框架中随机的样式
+             * @param speed 吸入速度区间[a,b]
+             * @param accelerated 加速度区间[a,b]
+             * @param zOder 层级，默认为0
+             */
+            export function _slowlyUp(parent, centerPoint: Laya.Point, radius: Array<number>, rotation?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, speed?: Array<number>, accelerated?: number, zOder?: number) {
+                let Img = new ImgBase(parent, centerPoint, PosSection, width, height, urlArr, colorRGBA, zOder);
+                let speed0 = speed ? Tools.randomOneNumer(speed[0], speed[1]) : Tools.randomOneNumer(4, 8);
+                let accelerated0 = accelerated ? Tools.randomOneNumer(accelerated[0], accelerated[1]) : Tools.randomOneNumer(0.25, 0.45);
+                let acc = 0;
+                let caller = {
+                    alpha: true,
+                    move: false,
+                    vinish: false,
+                };
+                let distance0 = 0;
+                let distance1 = distance ? Tools.randomOneNumer(distance[0], distance[1]) : Tools.randomOneNumer(100, 300);
+                TimerAdmin._frameLoop(1, caller, () => {
+                    if (Img.alpha < 1 && caller.alpha) {
+                        Img.alpha += 0.05;
+                        distance0 = Img.y++;
+                        if (Img.alpha >= 1) {
+                            caller.alpha = false;
+                            caller.move = true;
+                        }
+                    }
+                    if (distance0 < distance1 && caller.move) {
+                        acc += accelerated0;
+                        distance0 = Img.y += (speed0 + acc);
+                        if (distance0 >= distance1) {
+                            caller.move = false;
+                            caller.vinish = true;
+                        }
+                    }
+                    if (caller.vinish) {
+                        acc -= accelerated0 / 2;
+                        Img.alpha -= 0.03;
+                        Img.y += (speed0 + acc);
+                        if (Img.alpha <= 0 || (speed0 + acc) <= 0) {
+                            Img.removeSelf();
+                            Laya.timer.clearAll(caller);
+                        }
+                    }
+                })
+
             }
 
             /**
@@ -2038,24 +2116,6 @@ export module lwg {
             }
 
 
-            /**
-             * 徐徐向上，类似于蒸汽上升，烟雾上升，光点上升
-             * @param parent 父节点
-             * @param caller 执行域
-             * @param centerPoint 中心点
-             * @param radius 半径区间[a,b]
-             * @param rotation 角度区间，默认为360
-             * @param width 粒子的宽度区间[a,b]
-             * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
-             * @param urlArr 图片地址集合，默认为框架中随机的样式
-             * @param speed 吸入速度区间[a,b]
-             * @param accelerated 加速度区间[a,b]
-             * @param zOder 层级，默认为0
-             */
-            export function _slowlyUp(parent, centerPoint: Laya.Point, radius: Array<number>, rotation?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, speed?: Array<number>, accelerated?: number, zOder?: number) {
-
-
-            }
 
 
         }
@@ -4035,6 +4095,37 @@ export module lwg {
             }
         }
 
+        /**
+        * 返回一个数值区间内的数个随机数
+        * @param section1 区间1
+        * @param section2 区间2,不输入则是0~section1
+        * @param count 数量默认是1个
+        * @param intSet 是否是整数,默认是整数，为true
+        */
+        export function randomOneNumer(section1: number, section2?: number, intSet?: boolean): number {
+
+            if (intSet == undefined) {
+                intSet = true;
+            }
+            if (section2) {
+                let num;
+                if (intSet) {
+                    num = Math.floor(Math.random() * (section2 - section1)) + section1;
+                } else {
+                    num = Math.random() * (section2 - section1) + section1;
+                }
+                return num;
+            } else {
+                let num;
+                if (intSet) {
+                    num = Math.floor(Math.random() * section1);
+                } else {
+                    num = Math.random() * section1;
+                }
+                return num;
+            }
+        }
+
 
         /**返回两个二维物体的距离*/
         export function d2_twoObjectsLen(obj1: Laya.Sprite, obj2: Laya.Sprite): number {
@@ -4510,6 +4601,17 @@ export module lwg {
                 }
                 return arr0;
             }
+        }
+
+        /**
+        * 从一个数组中随机取出1个元素
+        * @param arr 数组
+        * @param num 取出几个元素默认为1个
+        */
+        export function arrayRandomGetOne(arr: Array<any>): any {
+            let arrCopy = Tools.array_Copy(arr);
+            let ran = Math.round(Math.random() * (arrCopy.length - 1));
+            return ran;
         }
 
         /**

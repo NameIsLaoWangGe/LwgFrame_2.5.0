@@ -97,10 +97,10 @@ export module Lwg_Game {
 
     }
 }
+
 /**可以手动挂在脚本中的类，全脚本唯一的默认导出，也可动态添加，动态添加写在模块内更方便*/
 export default class GameScene extends Lwg_Game.GameGeneral {
     lwgOnAwake(): void {
-        console.log('游戏界面！')
     }
 
     lwgOnEnable(): void {
