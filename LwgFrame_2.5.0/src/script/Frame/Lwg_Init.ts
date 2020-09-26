@@ -1,7 +1,10 @@
 import { Admin, Backpack, DrawCard, TimerAdmin, Setting, CheckIn, Loding } from "./lwg";
+import GameScene from "./Lwg_Game";
 // import { Game3D } from "../Game/Game3D";
 // import ZJADMgr from "../../TJ/ZJADMgr";
 import { Lwg_Guide } from "./Lwg_Guide";
+import UILoding from "./Lwg_Loding";
+import UIStart from "./Lwg_Start";
 export module Lwg_Init {
     export class InitScene extends Admin._Scene {
         moduleOnAwake(): void {
@@ -9,6 +12,10 @@ export module Lwg_Init {
             this.lwg3D();
             //如果加载时间过长，可以复制loding页面的内容到init界面
             // Setting.createSetBtn(64, 96, 82, 82, 'Game/UI/Common/shezhi.png');
+            Admin._sceneScript = {
+                UIStart: UIStart,
+                GameScene: GameScene,
+            }
         }
         /**基础参数初始化*/
         lwg(): void {

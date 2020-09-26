@@ -253,6 +253,6 @@ export default class UITask extends Lwg_Task._TaskScene {
 }
 
 /**列表脚本*/
-export class TaskItem extends Admin.Object {
+export class TaskItem extends Admin._Object {
 
 }

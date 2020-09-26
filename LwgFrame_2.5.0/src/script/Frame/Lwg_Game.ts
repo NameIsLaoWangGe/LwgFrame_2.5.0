@@ -1,4 +1,4 @@
-import { Admin, Click, Effects, TimerAdmin } from "./lwg";
+import { Admin, Click, Effects, TimerAdmin, Tools } from "./lwg";
 
 /**测试模块,每个模块分开，默认导出一个类，这个类是默认挂载的脚本类，如果有多个脚本，
  * 那么在这个默认类中进行添加，或者在其他地方动态添加*/
@@ -101,12 +101,18 @@ export module Lwg_Game {
 /**可以手动挂在脚本中的类，全脚本唯一的默认导出，也可动态添加，动态添加写在模块内更方便*/
 export default class GameScene extends Lwg_Game.GameGeneral {
     lwgOnAwake(): void {
+        console.log('测试！');
+        TimerAdmin._frameLoop(30, this, () => {
+            Effects._Particle._slowlyUp(this.ImgVar('Parent1'));
+        })
+
+        TimerAdmin._frameLoop(30, this, () => {
+            Effects._Particle._spray(this.ImgVar('Parent2'));
+        })
+
     }
 
     lwgOnEnable(): void {
-        TimerAdmin._frameNumLoop(30, 20, this, () => {
-            Effects._particle._fallingVertical(this.ImgVar('Parent1'));
-        })
     }
     lwgBtnClick(): void {
         this.btnVar('BtnBack')

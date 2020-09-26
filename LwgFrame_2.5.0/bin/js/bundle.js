@@ -684,12 +684,14 @@
                 if (immediately) {
                     method();
                 }
-                Laya.timer.frameLoop(delay1, caller, () => {
-                    let delay = Tools.randomNumber(delay1, delay2);
+                var func = () => {
+                    let delay = Tools.randomOneInt(delay1, delay2);
                     Laya.timer.frameOnce(delay, caller, () => {
                         method();
-                    });
-                }, args, coverBefore);
+                        func();
+                    }, args, coverBefore);
+                };
+                func();
             }
             TimerAdmin._frameRandomLoop = _frameRandomLoop;
             function _frameNumLoop(delay, num, caller, method, immediately, args, coverBefore) {
@@ -730,24 +732,24 @@
                 if (immediately) {
                     method();
                 }
-                Laya.timer.loop(delay1, caller, () => {
-                    let delay = Tools.randomNumber(delay1, delay2);
-                    Laya.timer.frameOnce(delay, caller, () => {
+                var func = () => {
+                    let delay = Tools.randomOneInt(delay1, delay2);
+                    Laya.timer.once(delay, caller, () => {
                         method();
-                    });
-                }, args, coverBefore);
+                        func();
+                    }, args, coverBefore);
+                };
+                func();
             }
             TimerAdmin._randomLoop = _randomLoop;
-            function _NumLoop(delay, num, method, immediately, args, coverBefore) {
+            function _numLoop(delay, num, caller, method, immediately, args, coverBefore) {
                 if (immediately) {
                     method();
                 }
-                let caller = {
-                    num0: 0,
-                };
+                let num0 = 0;
                 Laya.timer.loop(delay, caller, () => {
-                    caller.num0++;
-                    if (num >= caller.num0) {
+                    num0++;
+                    if (num0 >= num) {
                         Laya.timer.clearAll(caller);
                     }
                     else {
@@ -755,7 +757,7 @@
                     }
                 }, args, coverBefore);
             }
-            TimerAdmin._NumLoop = _NumLoop;
+            TimerAdmin._numLoop = _numLoop;
             function _once(delay, afterMethod, beforeMethod, args, coverBefore) {
                 if (beforeMethod) {
                     beforeMethod();
@@ -1275,6 +1277,7 @@
             Color.RGBtoHexString = RGBtoHexString;
             function _colour(node, RGBA, vanishtime) {
                 let cf = new Laya.ColorFilter();
+                node.blendMode = 'null';
                 if (!RGBA) {
                     cf.color(255, 0, 0, 1);
                 }
@@ -1295,7 +1298,7 @@
                 return cf;
             }
             Color._colour = _colour;
-            function _changeOnce(node, RGBA, time) {
+            function _changeOnce(node, RGBA, time, func) {
                 if (!node) {
                     return;
                 }
@@ -1330,6 +1333,9 @@
                         if (speedA !== 0)
                             A -= speedA;
                         if (R <= 0) {
+                            if (func) {
+                                func();
+                            }
                             Laya.timer.clearAll(caller);
                         }
                     }
@@ -1351,7 +1357,7 @@
                     cf = node.filters[0];
                     RGBA0 = [node.filters[0]['_alpha'][0], node.filters[0]['_alpha'][1], node.filters[0]['_alpha'][2], node.filters[0]['_alpha'][3] ? node.filters[0]['_alpha'][3] : 1];
                 }
-                let RGBA = [Tools.randomCountNumer(RGBA1[0], RGBA2[0])[0], Tools.randomCountNumer(RGBA1[1], RGBA2[1])[0], Tools.randomCountNumer(RGBA1[2], RGBA2[2])[0], Tools.randomCountNumer(RGBA1[3] ? RGBA1[3] : 1, RGBA2[3] ? RGBA2[3] : 1)[0]];
+                let RGBA = [Tools.randomCountNumber(RGBA1[0], RGBA2[0])[0], Tools.randomCountNumber(RGBA1[1], RGBA2[1])[0], Tools.randomCountNumber(RGBA1[2], RGBA2[2])[0], Tools.randomCountNumber(RGBA1[3] ? RGBA1[3] : 1, RGBA2[3] ? RGBA2[3] : 1)[0]];
                 let speedR = (RGBA[0] - RGBA0[0]) / time;
                 let speedG = (RGBA[1] - RGBA0[1]) / time;
                 let speedB = (RGBA[2] - RGBA0[2]) / time;
@@ -1381,177 +1387,340 @@
         (function (Effects) {
             let _SkinUrl;
             (function (_SkinUrl) {
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_white.png"] = 0] = "Frame/Effects/cir_white.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_black.png"] = 1] = "Frame/Effects/cir_black.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_blue.png"] = 2] = "Frame/Effects/cir_blue.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_bluish.png"] = 3] = "Frame/Effects/cir_bluish.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_cyan.png"] = 4] = "Frame/Effects/cir_cyan.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_grass.png"] = 5] = "Frame/Effects/cir_grass.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_green.png"] = 6] = "Frame/Effects/cir_green.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_orange.png"] = 7] = "Frame/Effects/cir_orange.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_pink.png"] = 8] = "Frame/Effects/cir_pink.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_purple.png"] = 9] = "Frame/Effects/cir_purple.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_red.png"] = 10] = "Frame/Effects/cir_red.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/cir_yellow.png"] = 11] = "Frame/Effects/cir_yellow.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_black.png"] = 12] = "Frame/Effects/star_black.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_blue.png"] = 13] = "Frame/Effects/star_blue.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_bluish.png"] = 14] = "Frame/Effects/star_bluish.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_cyan.png"] = 15] = "Frame/Effects/star_cyan.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_grass.png"] = 16] = "Frame/Effects/star_grass.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_green.png"] = 17] = "Frame/Effects/star_green.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_orange.png"] = 18] = "Frame/Effects/star_orange.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_pink.png"] = 19] = "Frame/Effects/star_pink.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_purple.png"] = 20] = "Frame/Effects/star_purple.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_red.png"] = 21] = "Frame/Effects/star_red.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_white.png"] = 22] = "Frame/Effects/star_white.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/star_yellow.png"] = 23] = "Frame/Effects/star_yellow.png";
-                _SkinUrl[_SkinUrl["Frame/Effects/ui_Circular_l_yellow.png"] = 24] = "Frame/Effects/ui_Circular_l_yellow.png";
-                _SkinUrl[_SkinUrl["Frame/UI/ui_square_guang.png"] = 25] = "Frame/UI/ui_square_guang.png";
+                _SkinUrl["\u7231\u5FC31"] = "Frame/Effects/aixin1.png";
+                _SkinUrl["\u7231\u5FC32"] = "Frame/Effects/aixin2.png";
+                _SkinUrl["\u7231\u5FC33"] = "Frame/Effects/aixin3.png";
+                _SkinUrl["\u82B11"] = "Frame/Effects/hua1.png";
+                _SkinUrl["\u82B12"] = "Frame/Effects/hua2.png";
+                _SkinUrl["\u82B13"] = "Frame/Effects/hua3.png";
+                _SkinUrl["\u82B14"] = "Frame/Effects/hua4.png";
+                _SkinUrl["\u661F\u661F1"] = "Frame/Effects/star1.png";
+                _SkinUrl["\u661F\u661F2"] = "Frame/Effects/star2.png";
+                _SkinUrl["\u661F\u661F3"] = "Frame/Effects/star3.png";
+                _SkinUrl["\u661F\u661F4"] = "Frame/Effects/star4.png";
+                _SkinUrl["\u661F\u661F5"] = "Frame/Effects/star5.png";
+                _SkinUrl["\u661F\u661F6"] = "Frame/Effects/star6.png";
+                _SkinUrl["\u661F\u661F7"] = "Frame/Effects/star7.png";
+                _SkinUrl["\u96EA\u82B11"] = "Frame/Effects/xuehua1.png";
+                _SkinUrl["\u53F6\u5B501"] = "Frame/Effects/yezi1.png";
+                _SkinUrl["\u5706\u5F62\u53D1\u51491"] = "Frame/Effects/yuanfaguang.png";
+                _SkinUrl["\u5706\u5F621"] = "Frame/Effects/yuan1.png";
+                _SkinUrl["\u5149\u57081"] = "Frame/Effects/guangquan1.png";
+                _SkinUrl["\u5149\u57082"] = "Frame/Effects/guangquan2.png";
             })(_SkinUrl = Effects._SkinUrl || (Effects._SkinUrl = {}));
-            let _SkinStyle;
-            (function (_SkinStyle) {
-                _SkinStyle["star"] = "star";
-                _SkinStyle["dot"] = "dot";
-            })(_SkinStyle = Effects._SkinStyle || (Effects._SkinStyle = {}));
-            function aureole_Continuous(parent, centerPoint, width, height, rotation, urlArr, zOder, speed, accelerated) {
-                let Img = new Laya.Image();
-                Img.skin = urlArr ? Tools.arrayRandomGetOut(urlArr)[0] : _SkinUrl[Tools.randomCountNumer(0, 12)[0]];
-                parent.addChild(Img);
-                Img.pos(centerPoint.x, centerPoint.y);
-                Img.width = width ? width : 100;
-                Img.height = height ? height : 100;
-                Img.pivotX = Img.width / 2;
-                Img.pivotY = Img.height / 2;
-                Img.alpha = 0;
-                Img.zOrder = zOder ? zOder : 0;
-                speed = speed ? speed : 0.025;
-                let angle = Tools.randomCountNumer(0, 360)[0];
-                let caller = {};
-                let acc = 0;
-                accelerated = accelerated ? accelerated : 0.0005;
-                let firstOff = false;
-                TimerAdmin._frameLoop(1, caller, () => {
-                    if (Img.alpha < 1 && !firstOff) {
-                        Img.alpha += 0.05;
-                        acc += (accelerated / 5);
-                        Img.scaleX += (speed / 2 + acc);
-                        Img.scaleY += (speed / 2 + acc);
+            let _Aperture;
+            (function (_Aperture) {
+                class _ApertureImage extends Laya.Image {
+                    constructor(parent, centerPoint, width, height, rotation, urlArr, colorRGBA, zOder) {
+                        super();
+                        parent.addChild(this);
+                        centerPoint ? this.pos(centerPoint.x, centerPoint.y) : this.pos(0, 0);
+                        this.width = width ? width : 100;
+                        this.height = height ? height : 100;
+                        this.pivotX = this.width / 2;
+                        this.pivotY = this.height / 2;
+                        this.rotation = rotation ? Tools.randomOneNumber(rotation[0], rotation[1]) : Tools.randomOneNumber(360);
+                        this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.花3;
+                        this.zOrder = zOder ? zOder : 0;
+                        this.alpha = 0;
+                        let RGBA = [];
+                        RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                        RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                        RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                        RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
+                        Color._colour(this, RGBA);
                     }
-                    else {
-                        firstOff = true;
-                        acc += accelerated;
-                        Img.scaleX += (speed + acc);
-                        Img.scaleY += (speed + acc);
-                        if (Img.scaleX > 2.4) {
-                            acc -= accelerated;
-                            if (Img.scaleX > 3.2) {
+                }
+                _Aperture._ApertureImage = _ApertureImage;
+                function _continuous(parent, centerPoint, width, height, rotation, urlArr, colorRGBA, zOder, scale, speed, accelerated) {
+                    let Img = new _ApertureImage(parent, centerPoint, width, height, rotation, urlArr, colorRGBA, zOder);
+                    let _speed = speed ? Tools.randomOneNumber(speed[0], speed[1]) : 0.025;
+                    let _accelerated = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : 0.0005;
+                    let _scale = scale ? Tools.randomOneNumber(scale[0], scale[1]) : 2;
+                    let moveCaller = {
+                        alpha: true,
+                        scale: false,
+                        vanish: false
+                    };
+                    Img['moveCaller'] = moveCaller;
+                    let acc = 0;
+                    TimerAdmin._frameLoop(1, moveCaller, () => {
+                        if (moveCaller.alpha) {
+                            Img.alpha += 0.05;
+                            acc = 0;
+                            if (Img.alpha >= 1) {
+                                moveCaller.alpha = false;
+                                moveCaller.scale = true;
+                            }
+                        }
+                        else if (moveCaller.scale) {
+                            acc += _accelerated;
+                            if (Img.scaleX > _scale) {
+                                moveCaller.scale = false;
+                                moveCaller.vanish = true;
+                            }
+                        }
+                        else if (moveCaller.vanish) {
+                            acc -= _accelerated;
+                            if (acc < 0) {
                                 Img.alpha -= 0.015;
-                                if (Img.alpha <= 0.005) {
+                                if (Img.alpha <= 0) {
                                     Img.removeSelf();
-                                    Laya.timer.clearAll(caller);
+                                    Laya.timer.clearAll(moveCaller);
                                 }
                             }
                         }
-                    }
-                });
-            }
-            Effects.aureole_Continuous = aureole_Continuous;
-            let _particle;
-            (function (_particle) {
-                class ImgBase extends Laya.Image {
-                    constructor(parent, centerPoint, PosSection, width, height, urlArr, colorRGBA, zOder) {
+                        Img.scaleX = Img.scaleY += (_speed + acc);
+                    });
+                }
+                _Aperture._continuous = _continuous;
+            })(_Aperture = Effects._Aperture || (Effects._Aperture = {}));
+            let _Particle;
+            (function (_Particle) {
+                class _ParticleImgBase extends Laya.Image {
+                    constructor(parent, centerPoint, sectionWH, width, height, rotation, urlArr, colorRGBA, zOder) {
                         super();
                         parent.addChild(this);
-                        let sectionWidth = PosSection ? Tools.randomOneNumer(PosSection[0], PosSection[1]) : Tools.randomOneNumer(-200, 200);
-                        let sectionHeight = PosSection ? Tools.randomOneNumer(PosSection[1], PosSection[1]) : Tools.randomOneNumer(-25, 25);
+                        let sectionWidth = sectionWH ? Tools.randomOneNumber(sectionWH[0]) : Tools.randomOneNumber(200);
+                        let sectionHeight = sectionWH ? Tools.randomOneNumber(sectionWH[1]) : Tools.randomOneNumber(50);
+                        sectionWidth = Tools.randomOneHalf() == 0 ? sectionWidth : -sectionWidth;
+                        sectionHeight = Tools.randomOneHalf() == 0 ? sectionHeight : -sectionHeight;
                         this.x = centerPoint ? centerPoint.x + sectionWidth : sectionWidth;
                         this.y = centerPoint ? centerPoint.y + sectionHeight : sectionHeight;
                         width = width ? width : [25, 50];
-                        this.width = Tools.randomOneNumer(width[0], width[1]);
-                        this.height = height ? Tools.randomOneNumer(height[0], height[1]) : this.width;
+                        this.width = Tools.randomOneNumber(width[0], width[1]);
+                        this.height = height ? Tools.randomOneNumber(height[0], height[1]) : this.width;
                         this.pivotX = this.width / 2;
                         this.pivotY = this.height / 2;
-                        this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl[Tools.randomOneNumer(0, 12)];
+                        this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.圆形1;
+                        this.rotation = rotation ? Tools.randomOneNumber(rotation[0], rotation[1]) : 0;
                         this.alpha = 0;
                         this.zOrder = zOder ? zOder : 0;
+                        let RGBA = [];
+                        RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                        RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                        RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                        RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
+                        Color._colour(this, RGBA);
                     }
                 }
-                _particle.ImgBase = ImgBase;
-                function _fallingVertical(parent, centerPoint, PosSection, width, height, urlArr, colorRGBA, zOder, distance, speed, accelerated) {
-                    let Img = new ImgBase(parent, centerPoint, PosSection, width, height, urlArr, colorRGBA, zOder);
-                    let speed0 = speed ? Tools.randomOneNumer(speed[0], speed[1]) : Tools.randomOneNumer(4, 8);
-                    let accelerated0 = accelerated ? Tools.randomOneNumer(accelerated[0], accelerated[1]) : Tools.randomOneNumer(0.25, 0.45);
+                _Particle._ParticleImgBase = _ParticleImgBase;
+                function _fallingVertical(parent, centerPoint, sectionWH, width, height, rotation, urlArr, colorRGBA, zOder, distance, speed, accelerated) {
+                    let Img = new _ParticleImgBase(parent, centerPoint, sectionWH, width, height, rotation, urlArr, colorRGBA, zOder);
+                    let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(4, 8);
+                    let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.25, 0.45);
                     let acc = 0;
-                    let caller = {
+                    let moveCaller = {
                         alpha: true,
                         move: false,
                         vinish: false,
                     };
-                    if (colorRGBA) {
-                        Color._colour(Img, []);
-                    }
+                    Img['moveCaller'] = moveCaller;
                     let distance0 = 0;
-                    let distance1 = distance ? Tools.randomOneNumer(distance[0], distance[1]) : Tools.randomOneNumer(100, 300);
-                    TimerAdmin._frameLoop(1, caller, () => {
-                        if (Img.alpha < 1 && caller.alpha) {
+                    let distance1 = distance ? Tools.randomOneNumber(distance[0], distance[1]) : Tools.randomOneNumber(100, 300);
+                    TimerAdmin._frameLoop(1, moveCaller, () => {
+                        if (Img.alpha < 1 && moveCaller.alpha) {
                             Img.alpha += 0.05;
                             distance0 = Img.y++;
                             if (Img.alpha >= 1) {
-                                caller.alpha = false;
-                                caller.move = true;
+                                moveCaller.alpha = false;
+                                moveCaller.move = true;
                             }
                         }
-                        if (distance0 < distance1 && caller.move) {
+                        if (distance0 < distance1 && moveCaller.move) {
                             acc += accelerated0;
                             distance0 = Img.y += (speed0 + acc);
                             if (distance0 >= distance1) {
-                                caller.move = false;
-                                caller.vinish = true;
+                                moveCaller.move = false;
+                                moveCaller.vinish = true;
                             }
                         }
-                        if (caller.vinish) {
+                        if (moveCaller.vinish) {
                             acc -= accelerated0 / 2;
                             Img.alpha -= 0.03;
                             Img.y += (speed0 + acc);
                             if (Img.alpha <= 0 || (speed0 + acc) <= 0) {
                                 Img.removeSelf();
-                                Laya.timer.clearAll(caller);
+                                Laya.timer.clearAll(moveCaller);
                             }
                         }
                     });
+                    return Img;
                 }
-                _particle._fallingVertical = _fallingVertical;
-                function _slowlyUp(parent, centerPoint, radius, rotation, width, height, urlArr, speed, accelerated, zOder) {
-                    let Img = new Laya.Image();
-                    parent.addChild(Img);
-                    width = width ? width : [25, 50];
-                    Img.width = Tools.randomCountNumer(width[0], width[1])[0];
-                    Img.height = height ? Tools.randomCountNumer(height[0], height[1])[0] : Img.width;
-                    Img.pivotX = Img.width / 2;
-                    Img.pivotY = Img.height / 2;
-                    Img.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl[Tools.randomCountNumer(0, 12)[0]];
-                    let radius0 = Tools.randomCountNumer(radius[0], radius[1])[0];
-                    Img.alpha = 0;
-                    let speed0 = speed ? Tools.randomCountNumer(speed[0], speed[1])[0] : Tools.randomCountNumer(5, 10)[0];
-                    let angle = rotation ? Tools.randomCountNumer(rotation[0], rotation[1])[0] : Tools.randomCountNumer(0, 360)[0];
-                    let caller = {};
+                _Particle._fallingVertical = _fallingVertical;
+                function _slowlyUp(parent, centerPoint, sectionWH, width, height, rotation, urlArr, colorRGBA, zOder, distance, speed, accelerated) {
+                    let Img = new _ParticleImgBase(parent, centerPoint, sectionWH, width, height, rotation, urlArr, colorRGBA, zOder);
+                    let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(1.5, 2);
+                    let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.001, 0.005);
                     let acc = 0;
-                    accelerated = accelerated ? accelerated : 0.35;
+                    let moveCaller = {
+                        alpha: true,
+                        move: false,
+                        vinish: false,
+                    };
+                    Img['moveCaller'] = moveCaller;
+                    let fy = Img.y;
+                    let distance0 = 0;
+                    let distance1 = distance ? Tools.randomOneNumber(distance[0], distance[1]) : Tools.randomOneNumber(-250, -600);
+                    TimerAdmin._frameLoop(1, moveCaller, () => {
+                        if (Img.alpha < 1 && moveCaller.alpha) {
+                            Img.alpha += 0.03;
+                            if (Img.alpha >= 1) {
+                                moveCaller.alpha = false;
+                                moveCaller.move = true;
+                            }
+                        }
+                        if (distance0 > distance1 && moveCaller.move) {
+                        }
+                        else {
+                            moveCaller.move = false;
+                            moveCaller.vinish = true;
+                        }
+                        if (moveCaller.vinish) {
+                            Img.alpha -= 0.02;
+                            Img.scaleX -= 0.005;
+                            Img.scaleY -= 0.005;
+                            if (Img.alpha <= 0) {
+                                Img.removeSelf();
+                                Laya.timer.clearAll(moveCaller);
+                            }
+                        }
+                        acc += accelerated0;
+                        Img.y -= (speed0 + acc);
+                        distance0 = fy - Img.y;
+                    });
+                    return Img;
                 }
-                _particle._slowlyUp = _slowlyUp;
+                _Particle._slowlyUp = _slowlyUp;
+                function _spray(parent, centerPoint, width, height, rotation, angle, urlArr, colorRGBA, zOder, distance, rotationSpeed, speed, accelerated) {
+                    let Img = new _ParticleImgBase(parent, centerPoint, [0, 0], width, height, rotation, urlArr, colorRGBA, zOder);
+                    let centerPoint0 = centerPoint ? centerPoint : new Laya.Point(0, 0);
+                    let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(3, 10);
+                    let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.25, 0.45);
+                    let acc = 0;
+                    let moveCaller = {
+                        alpha: true,
+                        move: false,
+                        vinish: false,
+                    };
+                    Img['moveCaller'] = moveCaller;
+                    let radius = 0;
+                    let distance1 = distance ? Tools.randomOneNumber(distance[0], distance[1]) : Tools.randomOneNumber(100, 200);
+                    let angle0 = angle ? Tools.randomOneNumber(angle[0], angle[1]) : Tools.randomOneNumber(0, 360);
+                    let rotationSpeed0 = rotationSpeed ? Tools.randomOneNumber(rotationSpeed[0], rotationSpeed[1]) : Tools.randomOneNumber(0, 20);
+                    TimerAdmin._frameLoop(1, moveCaller, () => {
+                        Img.rotation += rotationSpeed0;
+                        if (Img.alpha < 1 && moveCaller.alpha) {
+                            Img.alpha += 0.5;
+                            if (Img.alpha >= 1) {
+                                moveCaller.alpha = false;
+                                moveCaller.move = true;
+                            }
+                        }
+                        else {
+                            if (radius < distance1 && moveCaller.move) {
+                            }
+                            else {
+                                moveCaller.move = false;
+                                moveCaller.vinish = true;
+                            }
+                            if (moveCaller.vinish) {
+                                Img.alpha -= 0.05;
+                                if (Img.alpha <= 0.3) {
+                                    Img.removeSelf();
+                                    Laya.timer.clearAll(moveCaller);
+                                }
+                            }
+                            acc += accelerated0;
+                            radius += speed0 + acc;
+                            let point = Tools.point_GetRoundPos(angle0, radius, centerPoint0);
+                            Img.pos(point.x, point.y);
+                        }
+                    });
+                    return Img;
+                }
+                _Particle._spray = _spray;
+                function _moveToTargetToMove(parent, centerPoint, width, height, rotation, angle, urlArr, colorRGBA, zOder, distance1, distance2, rotationSpeed, speed, accelerated) {
+                    let Img = new _ParticleImgBase(parent, centerPoint, [0, 0], width, height, rotation, urlArr, colorRGBA, zOder);
+                    let centerPoint0 = centerPoint ? centerPoint : new Laya.Point(0, 0);
+                    let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(5, 6);
+                    let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.25, 0.45);
+                    let acc = 0;
+                    let moveCaller = {
+                        alpha: true,
+                        move1: false,
+                        stop: false,
+                        move2: false,
+                        vinish: false,
+                    };
+                    Img['moveCaller'] = moveCaller;
+                    let radius = 0;
+                    let dis1 = distance1 ? Tools.randomOneNumber(distance1[0], distance1[1]) : Tools.randomOneNumber(100, 200);
+                    let dis2 = distance2 ? Tools.randomOneNumber(distance2[0], distance2[1]) : Tools.randomOneNumber(100, 200);
+                    let angle0 = angle ? Tools.randomOneNumber(angle[0], angle[1]) : Tools.randomOneNumber(0, 360);
+                    Img.rotation = angle0 - 90;
+                    let rotationSpeed0 = rotationSpeed ? Tools.randomOneNumber(rotationSpeed[0], rotationSpeed[1]) : Tools.randomOneNumber(0, 20);
+                    TimerAdmin._frameLoop(1, moveCaller, () => {
+                        if (moveCaller.alpha) {
+                            acc += accelerated0;
+                            radius += speed0 + acc;
+                            Img.alpha += 0.5;
+                            if (Img.alpha >= 1) {
+                                moveCaller.alpha = false;
+                                moveCaller.move1 = true;
+                            }
+                        }
+                        else if (moveCaller.move1) {
+                            acc += accelerated0;
+                            radius += speed0 + acc;
+                            if (radius >= dis1) {
+                                moveCaller.move1 = false;
+                                moveCaller.stop = true;
+                            }
+                        }
+                        else if (moveCaller.stop) {
+                            acc -= 0.3;
+                            radius += 0.1;
+                            if (acc <= 0) {
+                                moveCaller.stop = false;
+                                moveCaller.move2 = true;
+                            }
+                        }
+                        else if (moveCaller.move2) {
+                            acc += accelerated0 / 2;
+                            radius += speed0 + acc;
+                            if (radius >= dis1 + dis2) {
+                                moveCaller.move2 = false;
+                                moveCaller.vinish = true;
+                            }
+                        }
+                        else if (moveCaller.vinish) {
+                            radius += 0.5;
+                            Img.alpha -= 0.05;
+                            if (Img.alpha <= 0) {
+                                Img.removeSelf();
+                                Laya.timer.clearAll(moveCaller);
+                            }
+                        }
+                        let point = Tools.point_GetRoundPos(angle0, radius, centerPoint0);
+                        Img.pos(point.x, point.y);
+                    });
+                    return Img;
+                }
+                _Particle._moveToTargetToMove = _moveToTargetToMove;
                 function _AnnularInhalation(parent, centerPoint, radius, rotation, width, height, urlArr, speed, accelerated, zOder) {
                     let Img = new Laya.Image();
                     parent.addChild(Img);
                     width = width ? width : [25, 50];
-                    Img.width = Tools.randomCountNumer(width[0], width[1])[0];
-                    Img.height = height ? Tools.randomCountNumer(height[0], height[1])[0] : Img.width;
+                    Img.width = Tools.randomCountNumber(width[0], width[1])[0];
+                    Img.height = height ? Tools.randomCountNumber(height[0], height[1])[0] : Img.width;
                     Img.pivotX = Img.width / 2;
                     Img.pivotY = Img.height / 2;
-                    Img.skin = urlArr ? Tools.arrayRandomGetOut(urlArr)[0] : _SkinUrl[Tools.randomCountNumer(0, 12)[0]];
-                    let radius0 = Tools.randomCountNumer(radius[0], radius[1])[0];
+                    Img.skin = urlArr ? Tools.arrayRandomGetOut(urlArr)[0] : _SkinUrl[Tools.randomCountNumber(0, 12)[0]];
+                    let radius0 = Tools.randomCountNumber(radius[0], radius[1])[0];
                     Img.alpha = 0;
-                    let speed0 = speed ? Tools.randomCountNumer(speed[0], speed[1])[0] : Tools.randomCountNumer(5, 10)[0];
-                    let angle = rotation ? Tools.randomCountNumer(rotation[0], rotation[1])[0] : Tools.randomCountNumer(0, 360)[0];
+                    let speed0 = speed ? Tools.randomCountNumber(speed[0], speed[1])[0] : Tools.randomCountNumber(5, 10)[0];
+                    let angle = rotation ? Tools.randomCountNumber(rotation[0], rotation[1])[0] : Tools.randomCountNumber(0, 360)[0];
                     let caller = {};
                     let acc = 0;
                     accelerated = accelerated ? accelerated : 0.35;
@@ -1572,111 +1741,176 @@
                             Laya.timer.clearAll(caller);
                         }
                     });
+                    return Img;
                 }
-                _particle._AnnularInhalation = _AnnularInhalation;
-            })(_particle = Effects._particle || (Effects._particle = {}));
-            function light_SimpleInfinite(parent, x, y, width, height, zOder, url, speed) {
-                let Img = new Laya.Image();
-                parent.addChild(Img);
-                Img.pos(x, y);
-                Img.width = width;
-                Img.height = height;
-                Img.pivotX = width / 2;
-                Img.pivotY = height / 2;
-                Img.skin = url ? url : _SkinUrl[24];
-                Img.alpha = 0;
-                Img.zOrder = zOder ? zOder : 0;
-                let add = true;
-                let caller = {};
-                let func = () => {
-                    if (!add) {
-                        Img.alpha -= speed ? speed : 0.01;
-                        if (Img.alpha <= 0) {
-                            if (caller['end']) {
-                                Laya.timer.clearAll(caller);
+                _Particle._AnnularInhalation = _AnnularInhalation;
+            })(_Particle = Effects._Particle || (Effects._Particle = {}));
+            let _Glitter;
+            (function (_Glitter) {
+                class _GlitterImage extends Laya.Image {
+                    constructor(parent, centerPos, radiusXY, urlArr, colorRGBA, width, height) {
+                        super();
+                        parent.addChild(this);
+                        this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.星星1;
+                        this.width = width ? Tools.randomOneNumber(width[0], width[1]) : 80;
+                        this.height = height ? Tools.randomOneNumber(height[0], height[1]) : this.width;
+                        this.pivotX = this.width / 2;
+                        this.pivotY = this.height / 2;
+                        let p = radiusXY ? Tools.point_RandomPointByCenter(centerPos, radiusXY[0], radiusXY[1], 1) : Tools.point_RandomPointByCenter(centerPos, 100, 100, 1);
+                        this.pos(p[0].x, p[0].y);
+                        let RGBA = [];
+                        RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                        RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                        RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                        RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
+                        Color._colour(this, RGBA);
+                        this.alpha = 0;
+                    }
+                }
+                _Glitter._GlitterImage = _GlitterImage;
+                function _blinkStar(parent, centerPos, radiusXY, urlArr, colorRGBA, width, height, scale, speed, rotateSpeed) {
+                    let Img = new _GlitterImage(parent, centerPos, radiusXY, urlArr, colorRGBA, width, height);
+                    Img.scaleX = 0;
+                    Img.scaleY = 0;
+                    let _scale = scale ? Tools.randomOneNumber(scale[0], scale[1]) : Tools.randomOneNumber(0.8, 1.2);
+                    let _speed = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(0.01, 0.02);
+                    let _rotateSpeed = rotateSpeed ? Tools.randomOneInt(rotateSpeed[0], rotateSpeed[1]) : Tools.randomOneInt(0, 5);
+                    _rotateSpeed = Tools.randomOneHalf() == 0 ? -_rotateSpeed : _rotateSpeed;
+                    let moveCaller = {
+                        appear: true,
+                        scale: false,
+                        vanish: false,
+                    };
+                    Img['moveCaller'] = moveCaller;
+                    var ani = () => {
+                        if (moveCaller.appear) {
+                            Img.alpha += 0.1;
+                            Img.rotation += _rotateSpeed;
+                            Img.scaleX = Img.scaleY += _speed;
+                            if (Img.alpha >= 1) {
+                                moveCaller.appear = false;
+                                moveCaller.scale = true;
+                            }
+                        }
+                        else if (moveCaller.scale) {
+                            Img.rotation += _rotateSpeed;
+                            Img.scaleX = Img.scaleY += _speed;
+                            if (Img.scaleX > _scale) {
+                                moveCaller.scale = false;
+                                moveCaller.vanish = true;
+                            }
+                        }
+                        else if (moveCaller.vanish) {
+                            Img.rotation -= _rotateSpeed;
+                            Img.alpha -= 0.015;
+                            Img.scaleX -= 0.01;
+                            Img.scaleY -= 0.01;
+                            if (Img.scaleX <= 0) {
                                 Img.removeSelf();
-                            }
-                            else {
-                                add = true;
+                                Laya.timer.clearAll(moveCaller);
                             }
                         }
-                    }
-                    else {
-                        Img.alpha += speed ? speed * 2 : 0.01 * 2;
-                        if (Img.alpha >= 1) {
-                            add = false;
-                            caller['end'] = true;
-                        }
-                    }
-                };
-                Laya.timer.frameLoop(1, caller, func);
-            }
-            Effects.light_SimpleInfinite = light_SimpleInfinite;
-            function blink_Star(parent, centerPos, radiusX, radiusY, skinUrl, width, height, speed, rotationSpeed) {
-                if (!rotationSpeed) {
-                    rotationSpeed = Tools.randomOneHalf() == 0 ? -5 : 5;
+                    };
+                    Laya.timer.frameLoop(1, moveCaller, ani);
+                    return Img;
                 }
-                let star = Laya.Pool.getItemByClass('star_Blink', Laya.Image);
-                star.name = 'star_Blink';
-                let num;
-                if (skinUrl == _SkinStyle.star || !skinUrl) {
-                    num = 12 + Math.floor(Math.random() * 12);
-                    star.skin = _SkinUrl[num];
-                }
-                else if (skinUrl == _SkinStyle.dot) {
-                    num = Math.floor(Math.random() * 12);
-                    star.skin = _SkinUrl[num];
-                }
-                else {
-                    star.skin = skinUrl;
-                }
-                star.alpha = 0;
-                star.width = width;
-                star.height = height;
-                star.scaleX = 0;
-                star.scaleY = 0;
-                star.pivotX = star.width / 2;
-                star.pivotY = star.height / 2;
-                parent.addChild(star);
-                let p = Tools.point_RandomPointByCenter(centerPos, radiusX, radiusY, 1);
-                star.pos(p[0].x, p[0].y);
-                let maxScale = Tools.randomCountNumer(0.8, 1.2)[0];
-                let timer = 0;
-                let caller = {};
-                var ani = () => {
-                    timer++;
-                    if (timer > 0 && timer <= 20) {
-                        star.alpha += 0.1;
-                        star.rotation += rotationSpeed;
-                        star.scaleX += 0.011;
-                        star.scaleY += 0.011;
-                    }
-                    else if (timer > 20) {
-                        if (!star['reduce']) {
-                            if (star.scaleX > maxScale) {
-                                star['reduce'] = true;
-                            }
-                            else {
-                                star.rotation += rotationSpeed;
-                                star.scaleX += 0.02;
-                                star.scaleY += 0.02;
+                _Glitter._blinkStar = _blinkStar;
+                function _simpleInfinite(parent, x, y, width, height, zOder, url, speed) {
+                    let Img = new Laya.Image();
+                    parent.addChild(Img);
+                    Img.pos(x, y);
+                    Img.width = width;
+                    Img.height = height;
+                    Img.pivotX = width / 2;
+                    Img.pivotY = height / 2;
+                    Img.skin = url ? url : _SkinUrl[24];
+                    Img.alpha = 0;
+                    Img.zOrder = zOder ? zOder : 0;
+                    let add = true;
+                    let caller = {};
+                    let func = () => {
+                        if (!add) {
+                            Img.alpha -= speed ? speed : 0.01;
+                            if (Img.alpha <= 0) {
+                                if (caller['end']) {
+                                    Laya.timer.clearAll(caller);
+                                    Img.removeSelf();
+                                }
+                                else {
+                                    add = true;
+                                }
                             }
                         }
                         else {
-                            star.rotation -= rotationSpeed;
-                            star.alpha -= 0.015;
-                            star.scaleX -= 0.01;
-                            star.scaleY -= 0.01;
-                            if (star.scaleX <= 0) {
-                                star.removeSelf();
-                                Laya.timer.clearAll(caller);
+                            Img.alpha += speed ? speed * 2 : 0.01 * 2;
+                            if (Img.alpha >= 1) {
+                                add = false;
+                                caller['end'] = true;
                             }
                         }
+                    };
+                    Laya.timer.frameLoop(1, caller, func);
+                    return Img;
+                }
+                _Glitter._simpleInfinite = _simpleInfinite;
+            })(_Glitter = Effects._Glitter || (Effects._Glitter = {}));
+            let _circulation;
+            (function (_circulation) {
+                class _circulationImage extends Laya.Image {
+                    constructor(parent, urlArr, colorRGBA, width, height, zOder) {
+                        super();
+                        parent.addChild(this);
+                        this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.圆形发光1;
+                        this.width = width ? Tools.randomOneNumber(width[0], width[1]) : 80;
+                        this.height = height ? Tools.randomOneNumber(height[0], height[1]) : this.width;
+                        this.pivotX = this.width / 2;
+                        this.pivotY = this.height / 2;
+                        let RGBA = [];
+                        RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                        RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                        RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                        RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
+                        Color._colour(this, RGBA);
+                        this.zOrder = zOder ? zOder : 0;
+                        this.alpha = 0;
+                        this.scaleX = 0;
+                        this.scaleY = 0;
                     }
-                };
-                Laya.timer.frameLoop(1, caller, ani);
-            }
-            Effects.blink_Star = blink_Star;
+                }
+                _circulation._circulationImage = _circulationImage;
+                function _corner(parent, posArray, urlArr, colorRGBA, width, height, zOder, speed) {
+                    if (posArray.length <= 1) {
+                        return;
+                    }
+                    let Img = new _circulationImage(parent, urlArr, colorRGBA, width, height, zOder);
+                    Img.pos(posArray[0][0], posArray[0][1]);
+                    Img.alpha = 1;
+                    let moveCaller = {
+                        num: 0,
+                    };
+                    Img['moveCaller'] = moveCaller;
+                    let _speed = speed ? speed : 10;
+                    let index = 0;
+                    Img.scale(1, 1);
+                    var func = () => {
+                        let targetXY = [posArray[index][0], posArray[index][1]];
+                        let distance = (new Laya.Point()).distance(targetXY[0], targetXY[1]);
+                        let time = distance / _speed * 100;
+                        if (index == posArray.length + 1) {
+                            targetXY = [posArray[0][0], posArray[0][1]];
+                        }
+                        Animation2D.move_Simple(Img, Img.x, Img.y, targetXY[0], targetXY[1], time, 0, () => {
+                            index++;
+                            if (index == posArray.length) {
+                                index = 0;
+                            }
+                            func();
+                        });
+                    };
+                    func();
+                }
+                _circulation._corner = _corner;
+            })(_circulation = Effects._circulation || (Effects._circulation = {}));
         })(Effects = lwg.Effects || (lwg.Effects = {}));
         let Click;
         (function (Click) {
@@ -2823,7 +3057,7 @@
                 return number;
             }
             Tools.randomOneHalf = randomOneHalf;
-            function randomNumber(section1, section2) {
+            function randomOneInt(section1, section2) {
                 if (section2) {
                     return Math.floor(Math.random() * (section2 - section1)) + section1;
                 }
@@ -2831,8 +3065,8 @@
                     return Math.floor(Math.random() * section1);
                 }
             }
-            Tools.randomNumber = randomNumber;
-            function randomCountNumer(section1, section2, count, intSet) {
+            Tools.randomOneInt = randomOneInt;
+            function randomCountNumber(section1, section2, count, intSet) {
                 let arr = [];
                 if (!count) {
                     count = 1;
@@ -2870,8 +3104,8 @@
                     return arr;
                 }
             }
-            Tools.randomCountNumer = randomCountNumer;
-            function randomOneNumer(section1, section2, intSet) {
+            Tools.randomCountNumber = randomCountNumber;
+            function randomOneNumber(section1, section2, intSet) {
                 if (intSet == undefined) {
                     intSet = true;
                 }
@@ -2896,7 +3130,7 @@
                     return num;
                 }
             }
-            Tools.randomOneNumer = randomOneNumer;
+            Tools.randomOneNumber = randomOneNumber;
             function d2_twoObjectsLen(obj1, obj2) {
                 let point = new Laya.Point(obj1.x, obj1.y);
                 let len = point.distance(obj2.x, obj2.y);
@@ -3351,8 +3585,8 @@
                 }
                 let arr = [];
                 for (let index = 0; index < count; index++) {
-                    let x0 = Tools.randomCountNumer(0, radiusX, 1, false);
-                    let y0 = Tools.randomCountNumer(0, radiusY, 1, false);
+                    let x0 = Tools.randomCountNumber(0, radiusX, 1, false);
+                    let y0 = Tools.randomCountNumber(0, radiusY, 1, false);
                     let diffX = Tools.randomOneHalf() == 0 ? x0[0] : -x0[0];
                     let diffY = Tools.randomOneHalf() == 0 ? y0[0] : -y0[0];
                     let p = new Laya.Point(centerPos.x + diffX, centerPos.y + diffY);
@@ -4653,11 +4887,15 @@
     })(Lwg_Game || (Lwg_Game = {}));
     class GameScene extends Lwg_Game.GameGeneral {
         lwgOnAwake() {
+            console.log('测试！');
+            TimerAdmin._frameLoop(30, this, () => {
+                Effects._Particle._slowlyUp(this.ImgVar('Parent1'));
+            });
+            TimerAdmin._frameLoop(30, this, () => {
+                Effects._Particle._spray(this.ImgVar('Parent2'));
+            });
         }
         lwgOnEnable() {
-            TimerAdmin._frameNumLoop(30, 20, this, () => {
-                Effects._particle._fallingVertical(this.ImgVar('Parent1'));
-            });
         }
         lwgBtnClick() {
             this.btnVar('BtnBack');
@@ -4667,33 +4905,6 @@
         }
     }
     class GameSceneItem extends Admin._Object {
-    }
-
-    var Lwg_Init;
-    (function (Lwg_Init) {
-        class InitScene extends Admin._Scene {
-            moduleOnAwake() {
-                this.lwg();
-                this.lwg3D();
-            }
-            lwg() {
-                Admin._commonVanishAni = true;
-                Admin._platform = Admin._platformTpye.Bytedance;
-                Admin._evaluating = false;
-            }
-            lwg3D() {
-            }
-        }
-        Lwg_Init.InitScene = InitScene;
-    })(Lwg_Init || (Lwg_Init = {}));
-    class UIInit extends Lwg_Init.InitScene {
-        lwgOnEnable() {
-            console.log('完成初始化');
-            Admin._openScene(Admin._SceneName.UIStart, this.calssName);
-        }
-        lwgOnDisable() {
-            Admin._closeScene(Admin._SceneName.UILoding);
-        }
     }
 
     var Lwg_Start;
@@ -4782,6 +4993,37 @@
     class UIStartItem extends Admin._Object {
     }
 
+    var Lwg_Init;
+    (function (Lwg_Init) {
+        class InitScene extends Admin._Scene {
+            moduleOnAwake() {
+                this.lwg();
+                this.lwg3D();
+                Admin._sceneScript = {
+                    UIStart: UIStart,
+                    GameScene: GameScene,
+                };
+            }
+            lwg() {
+                Admin._commonVanishAni = true;
+                Admin._platform = Admin._platformTpye.Bytedance;
+                Admin._evaluating = false;
+            }
+            lwg3D() {
+            }
+        }
+        Lwg_Init.InitScene = InitScene;
+    })(Lwg_Init || (Lwg_Init = {}));
+    class UIInit extends Lwg_Init.InitScene {
+        lwgOnEnable() {
+            console.log('完成初始化');
+            Admin._openScene(Admin._SceneName.UIStart, this.calssName);
+        }
+        lwgOnDisable() {
+            Admin._closeScene(Admin._SceneName.UILoding);
+        }
+    }
+
     class UILoding extends Loding.LodingScene {
         lwgOnAwake() {
             Loding.list_2DPic = [];
@@ -4795,7 +5037,6 @@
             Loding.list_JsonData = [];
             Admin._sceneScript = {
                 UILoding: UILoding,
-                UIInit: UIInit,
                 UIStart: UIStart,
                 GameScene: GameScene,
             };
@@ -4883,6 +5124,7 @@
         }
         static init() {
             var reg = Laya.ClassUtils.regClass;
+            reg("script/Frame/Lwg_Init.ts", UIInit);
             reg("script/Frame/Lwg_Loding.ts", UILoding);
             reg("script/GameUI.ts", GameUI);
         }

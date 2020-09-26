@@ -47,7 +47,7 @@ export default class UILoding extends Loding.LodingScene {
         ];
         Admin._sceneScript = {
             UILoding: UILoding,
-            UIInit: UIInit,
+            // UIInit: UIInit,
             UIStart: UIStart,
             GameScene: GameScene,
         }

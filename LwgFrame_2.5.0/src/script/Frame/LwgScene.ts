@@ -1,4 +1,3 @@
-import UIInit from "./Lwg_Init"
 import UILoding from "./Lwg_Loding"
 /**场景的声明*/
 export module LwgScene {
@@ -43,16 +42,4 @@ export module LwgScene {
         UIInit = 'UIInit'
     }
 
-    /**
-     * 场景集合
-     * */
-    export let control = {
-    }
-    /** 
-     * 场景的脚本声明
-    */
-    export let script = {
-        UILoding: UILoding,
-        UIInit: UIInit,
-    }
 }

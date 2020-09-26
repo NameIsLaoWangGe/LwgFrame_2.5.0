@@ -930,7 +930,6 @@ export module lwg {
          * @param delay2 间隔帧数区间2
          * @param caller 执行域
          * @param method 方法回调
-         * @param immediately 是否立即执行一次，默认为false
          * @param args 
          * @param coverBefore 
          */
@@ -938,12 +937,14 @@ export module lwg {
             if (immediately) {
                 method();
             }
-            Laya.timer.frameLoop(delay1, caller, () => {
-                let delay = Tools.randomNumber(delay1, delay2);
+            var func = () => {
+                let delay = Tools.randomOneInt(delay1, delay2);
                 Laya.timer.frameOnce(delay, caller, () => {
                     method();
-                })
-            }, args, coverBefore);
+                    func()
+                }, args, coverBefore)
+            }
+            func();
         }
 
         /**
@@ -1020,12 +1021,14 @@ export module lwg {
             if (immediately) {
                 method();
             }
-            Laya.timer.loop(delay1, caller, () => {
-                let delay = Tools.randomNumber(delay1, delay2);
-                Laya.timer.frameOnce(delay, caller, () => {
+            var func = () => {
+                let delay = Tools.randomOneInt(delay1, delay2);
+                Laya.timer.once(delay, caller, () => {
                     method();
-                })
-            }, args, coverBefore);
+                    func();
+                }, args, coverBefore);
+            }
+            func();
         }
 
         /**
@@ -1037,22 +1040,21 @@ export module lwg {
          * @param args 
          * @param coverBefore 
          */
-        export function _NumLoop(delay: number, num: number, method: Function, immediately?: boolean, args?: any[], coverBefore?: boolean): void {
+        export function _numLoop(delay: number, num: number, caller: any, method: Function, immediately?: boolean, args?: any[], coverBefore?: boolean): void {
             if (immediately) {
                 method();
             }
-            let caller = {
-                num0: 0,
-            };
+            let num0 = 0;
             Laya.timer.loop(delay, caller, () => {
-                caller.num0++;
-                if (num >= caller.num0) {
+                num0++;
+                if (num0 >= num) {
                     Laya.timer.clearAll(caller);
                 } else {
                     method();
                 }
             }, args, coverBefore);
         }
+
         /**
         * 执行一次的计时器，基于时间
         * @param delay 延时
@@ -1070,7 +1072,6 @@ export module lwg {
                 afterMethod();
             }, args, coverBefore)
         }
-
     }
 
     /**游戏整体控制*/
@@ -1706,6 +1707,7 @@ export module lwg {
          */
         export function _colour(node: Laya.Sprite, RGBA?: Array<number>, vanishtime?: number): Laya.ColorFilter {
             let cf = new Laya.ColorFilter();
+            node.blendMode = 'null';
             if (!RGBA) {
                 cf.color(255, 0, 0, 1)
             } else {
@@ -1726,12 +1728,12 @@ export module lwg {
         }
 
         /**
-         * 颜色变化生命周期，在时间内改进行一次颜色渐变，之后回到原来的颜色，RGB颜色为匀速增加
+         * 颜色变化生命周期，在时间内改进行一次颜色渐变，之后回到原来的颜色，RGB颜色为匀速增加,基于帧率
          * @param node 节点
-         * @param RGBA  [R,G,B,A],A可以不输入
-         * @param time time为��数， time*2为一个周期
+         * @param RGBA  [R,G,B,A],A必须输入
+         * @param time time为时间， time*2为一个周期
          */
-        export function _changeOnce(node, RGBA: Array<number>, time: number): void {
+        export function _changeOnce(node, RGBA: Array<number>, time?: number, func?: Function): void {
             if (!node) {
                 return;
             }
@@ -1763,6 +1765,9 @@ export module lwg {
                     B -= speedB;
                     if (speedA !== 0) A -= speedA;
                     if (R <= 0) {
+                        if (func) {
+                            func();
+                        }
                         Laya.timer.clearAll(caller);
                     }
                 }
@@ -1791,7 +1796,7 @@ export module lwg {
                 RGBA0 = [node.filters[0]['_alpha'][0], node.filters[0]['_alpha'][1], node.filters[0]['_alpha'][2], node.filters[0]['_alpha'][3] ? node.filters[0]['_alpha'][3] : 1];
             }
             // 随机出一条颜色值
-            let RGBA = [Tools.randomCountNumer(RGBA1[0], RGBA2[0])[0], Tools.randomCountNumer(RGBA1[1], RGBA2[1])[0], Tools.randomCountNumer(RGBA1[2], RGBA2[2])[0], Tools.randomCountNumer(RGBA1[3] ? RGBA1[3] : 1, RGBA2[3] ? RGBA2[3] : 1)[0]];
+            let RGBA = [Tools.randomCountNumber(RGBA1[0], RGBA2[0])[0], Tools.randomCountNumber(RGBA1[1], RGBA2[1])[0], Tools.randomCountNumber(RGBA1[2], RGBA2[2])[0], Tools.randomCountNumber(RGBA1[3] ? RGBA1[3] : 1, RGBA2[3] ? RGBA2[3] : 1)[0]];
             let speedR = (RGBA[0] - RGBA0[0]) / time;
             let speedG = (RGBA[1] - RGBA0[1]) / time;
             let speedB = (RGBA[2] - RGBA0[2]) / time;
@@ -1811,158 +1816,176 @@ export module lwg {
                 } else {
                     Laya.timer.clearAll(caller);
                 }
-                // console.log(RGBA0);
                 cf.color(RGBA0[0], RGBA0[1], RGBA0[2], RGBA0[3]);
                 node.filters = [cf];
             })
         }
     }
 
+
     /**特效模块*/
     export module Effects {
         /**特效元素的图片地址，所有项目都可用*/
         export enum _SkinUrl {
-            'Frame/Effects/cir_white.png',
-            "Frame/Effects/cir_black.png",
-            "Frame/Effects/cir_blue.png",
-            "Frame/Effects/cir_bluish.png",
-            "Frame/Effects/cir_cyan.png",
-            "Frame/Effects/cir_grass.png",
-            "Frame/Effects/cir_green.png",
-            "Frame/Effects/cir_orange.png",
-            "Frame/Effects/cir_pink.png",
-            "Frame/Effects/cir_purple.png",
-            "Frame/Effects/cir_red.png",
-            "Frame/Effects/cir_yellow.png",
-
-            "Frame/Effects/star_black.png",
-            "Frame/Effects/star_blue.png",
-            "Frame/Effects/star_bluish.png",
-            "Frame/Effects/star_cyan.png",
-            "Frame/Effects/star_grass.png",
-            "Frame/Effects/star_green.png",
-            "Frame/Effects/star_orange.png",
-            "Frame/Effects/star_pink.png",
-            "Frame/Effects/star_purple.png",
-            "Frame/Effects/star_red.png",
-            "Frame/Effects/star_white.png",
-            "Frame/Effects/star_yellow.png",
-
-            "Frame/Effects/ui_Circular_l_yellow.png",
-
-            "Frame/UI/ui_square_guang.png",
-
-        }
-
-        /**表示需要什么样的图片样式*/
-        export enum _SkinStyle {
-            star = 'star',
-            dot = 'dot',
+            爱心1 = 'Frame/Effects/aixin1.png',
+            爱心2 = "Frame/Effects/aixin2.png",
+            爱心3 = "Frame/Effects/aixin3.png",
+            花1 = "Frame/Effects/hua1.png",
+            花2 = "Frame/Effects/hua2.png",
+            花3 = "Frame/Effects/hua3.png",
+            花4 = "Frame/Effects/hua4.png",
+            星星1 = "Frame/Effects/star1.png",
+            星星2 = "Frame/Effects/star2.png",
+            星星3 = "Frame/Effects/star3.png",
+            星星4 = "Frame/Effects/star4.png",
+            星星5 = "Frame/Effects/star5.png",
+            星星6 = "Frame/Effects/star6.png",
+            星星7 = "Frame/Effects/star7.png",
+            雪花1 = "Frame/Effects/xuehua1.png",
+            叶子1 = "Frame/Effects/yezi1.png",
+            圆形发光1 = "Frame/Effects/yuanfaguang.png",
+            圆形1 = "Frame/Effects/yuan1.png",
+            光圈1 = "Frame/Effects/guangquan1.png",
+            光圈2 = "Frame/Effects/guangquan2.png",
         }
 
         /**
-         * 从中心点发出一个光圈，类似波浪，根据光圈不同的样式和节奏,通过控制宽高来控制放大多少
-         * @param parent 父节点
-         * @param centerPoint 发出位置
-         * @param width 宽度，默认100
-         * @param height 高度，默认100
-         * @param rotation 角度区间,默认为随机
-         * @param urlArr 图片数组，默认为框架中的图片
-         * @param zOder 层级，默认为0
-         * @param speed 速度，默认0.025，也表示了消失位置，和波浪的大小
-         * @param accelerated 加速度,默认为0.0005
-         */
-        export function aureole_Continuous(parent, centerPoint: Laya.Point, width?: number, height?: number, rotation?: Array<number>, urlArr?: Array<string>, zOder?: number, speed?: number, accelerated?: number): void {
-            let Img = new Laya.Image();
-            Img.skin = urlArr ? Tools.arrayRandomGetOut(urlArr)[0] : _SkinUrl[Tools.randomCountNumer(0, 12)[0]];
-            parent.addChild(Img);
-            Img.pos(centerPoint.x, centerPoint.y);
-            Img.width = width ? width : 100;
-            Img.height = height ? height : 100;
-            Img.pivotX = Img.width / 2;
-            Img.pivotY = Img.height / 2;
-            Img.alpha = 0;
-            Img.zOrder = zOder ? zOder : 0;
-            speed = speed ? speed : 0.025;
-            let angle = Tools.randomCountNumer(0, 360)[0];
-            let caller = {};
-            let acc = 0;
-            accelerated = accelerated ? accelerated : 0.0005;
-            let firstOff = false;
-            TimerAdmin._frameLoop(1, caller, () => {
-                if (Img.alpha < 1 && !firstOff) {
-                    Img.alpha += 0.05;
-                    acc += (accelerated / 5);
-                    Img.scaleX += (speed / 2 + acc);
-                    Img.scaleY += (speed / 2 + acc);
-                } else {
-                    firstOff = true;
-                    acc += accelerated;
-                    Img.scaleX += (speed + acc);
-                    Img.scaleY += (speed + acc);
-                    if (Img.scaleX > 2.4) {
-                        acc -= accelerated;
-                        if (Img.scaleX > 3.2) {
+         * 光圈模块
+         * */
+        export module _Aperture {
+
+            /**光圈模块的图片基类*/
+            export class _ApertureImage extends Laya.Image {
+                constructor(parent: Laya.Sprite, centerPoint: Laya.Point, width: number, height: number, rotation: Array<number>, urlArr: Array<string>, colorRGBA: Array<Array<number>>, zOder: number) {
+                    super();
+                    parent.addChild(this);
+                    centerPoint ? this.pos(centerPoint.x, centerPoint.y) : this.pos(0, 0);
+                    this.width = width ? width : 100;
+                    this.height = height ? height : 100;
+                    this.pivotX = this.width / 2;
+                    this.pivotY = this.height / 2;
+                    this.rotation = rotation ? Tools.randomOneNumber(rotation[0], rotation[1]) : Tools.randomOneNumber(360);
+                    this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.花3;
+                    this.zOrder = zOder ? zOder : 0;
+                    this.alpha = 0;
+                    let RGBA = [];
+                    RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                    RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                    RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                    RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
+                    Color._colour(this, RGBA);
+                }
+            }
+
+            /**
+             * 从中心点发出一个光圈，类似波浪，根据光圈不同的样式和节奏,通过控制宽高来控制放大多少
+             * @param parent 父节点
+             * @param centerPoint 发出位置
+             * @param width 宽度，默认100
+             * @param height 高度，默认100
+             * @param rotation 角度区间[a,b],默认为随机
+             * @param urlArr 图片数组，默认为框架中的图片
+             * @param colorRGBA 颜色区间[[][]]
+             * @param scale 最大放大区间[a,b]
+             * @param zOder 层级，默认为0
+             * @param speed 速度区间[a,b]，默认0.025，也表示了消失位置，和波浪的大小
+             * @param accelerated 加速度,默认为0.0005
+             */
+            export function _continuous(parent: Laya.Sprite, centerPoint?: Laya.Point, width?: number, height?: number, rotation?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number, scale?: Array<number>, speed?: Array<number>, accelerated?: Array<number>): void {
+                let Img = new _ApertureImage(parent, centerPoint, width, height, rotation, urlArr, colorRGBA, zOder);
+                let _speed = speed ? Tools.randomOneNumber(speed[0], speed[1]) : 0.025;
+                let _accelerated = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : 0.0005;
+                let _scale = scale ? Tools.randomOneNumber(scale[0], scale[1]) : 2;
+                let moveCaller = {
+                    alpha: true,
+                    scale: false,
+                    vanish: false
+                };
+                Img['moveCaller'] = moveCaller;
+                let acc = 0;
+                TimerAdmin._frameLoop(1, moveCaller, () => {
+                    if (moveCaller.alpha) {
+                        Img.alpha += 0.05;
+                        acc = 0;
+                        if (Img.alpha >= 1) {
+                            moveCaller.alpha = false;
+                            moveCaller.scale = true;
+                        }
+                    } else if (moveCaller.scale) {
+                        acc += _accelerated;
+                        if (Img.scaleX > _scale) {
+                            moveCaller.scale = false;
+                            moveCaller.vanish = true;
+                        }
+                    } else if (moveCaller.vanish) {
+                        acc -= _accelerated;
+                        if (acc < 0) {
                             Img.alpha -= 0.015;
-                            if (Img.alpha <= 0.005) {
+                            if (Img.alpha <= 0) {
                                 Img.removeSelf();
-                                Laya.timer.clearAll(caller);
+                                Laya.timer.clearAll(moveCaller);
                             }
                         }
                     }
-                }
-            })
+                    Img.scaleX = Img.scaleY += (_speed + acc);
+                })
+            }
         }
 
-
         /**粒子模块*/
-        export module _particle {
-            export class ImgBase extends Laya.Image {
+        export module _Particle {
+            export class _ParticleImgBase extends Laya.Image {
                 /**
                  * 图片初始值设置
                  * Creates an instance of ImgBase.
                  * @param parent 父节点
                  * @param caller 执行域
                  * @param centerPoint 中心点
-                 * @param PosSection 宽高延伸[a,b]
+                 * @param sectionWH 以中心点为中心的宽高[w,h]
                  * @param distance 移动距离，区间[a,b]，随机移动一定的距离后消失;
                  * @param width 粒子的宽度区间[a,b]
                  * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
+                 * @param rotation 角度区间[a,b]
                  * @param urlArr 图片地址集合，默认为框架中随机的样式
                  * @param colorRGBA 上色色值区间[[R,G,B,A],[R,G,B,A]]
                  * @param zOder 层级，默认为0
                  */
-                constructor(parent: Laya.Sprite, centerPoint?: Laya.Point, PosSection?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number) {
+                constructor(parent: Laya.Sprite, centerPoint: Laya.Point, sectionWH: Array<number>, width: Array<number>, height: Array<number>, rotation: Array<number>, urlArr: Array<string>, colorRGBA: Array<Array<number>>, zOder: number) {
                     super();
                     parent.addChild(this);
-                    let sectionWidth = PosSection ? Tools.randomOneNumer(PosSection[0], PosSection[1]) : Tools.randomOneNumer(-200, 200);
-                    let sectionHeight = PosSection ? Tools.randomOneNumer(PosSection[1], PosSection[1]) : Tools.randomOneNumer(-25, 25);
+                    let sectionWidth = sectionWH ? Tools.randomOneNumber(sectionWH[0]) : Tools.randomOneNumber(200);
+                    let sectionHeight = sectionWH ? Tools.randomOneNumber(sectionWH[1]) : Tools.randomOneNumber(50);
+                    sectionWidth = Tools.randomOneHalf() == 0 ? sectionWidth : -sectionWidth;
+                    sectionHeight = Tools.randomOneHalf() == 0 ? sectionHeight : -sectionHeight;
                     this.x = centerPoint ? centerPoint.x + sectionWidth : sectionWidth;
                     this.y = centerPoint ? centerPoint.y + sectionHeight : sectionHeight;
                     width = width ? width : [25, 50];
-                    this.width = Tools.randomOneNumer(width[0], width[1]);
-                    this.height = height ? Tools.randomOneNumer(height[0], height[1]) : this.width;
+                    this.width = Tools.randomOneNumber(width[0], width[1]);
+                    this.height = height ? Tools.randomOneNumber(height[0], height[1]) : this.width;
                     this.pivotX = this.width / 2;
                     this.pivotY = this.height / 2;
-                    this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl[Tools.randomOneNumer(0, 12)];
+                    this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.圆形1;
+                    this.rotation = rotation ? Tools.randomOneNumber(rotation[0], rotation[1]) : 0;
                     this.alpha = 0;
                     this.zOrder = zOder ? zOder : 0;
                     let RGBA = [];
-                    RGBA[0] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumer(100, 255);
-                    RGBA[1] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumer(100, 255);
-                    RGBA[2] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumer(100, 255);
-                    RGBA[3] = colorRGBA ? Tools.randomOneNumer(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumer(100, 255);
+                    RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                    RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                    RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                    RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
                     Color._colour(this, RGBA);
                 }
             }
+
             /**
               * 发射一个垂直向下的粒子，类似于火星下落熄灭，水滴下落被蒸发,下雪，不是下雨状态
               * @param parent 父节点
               * @param caller 执行域
               * @param centerPoint 中心点
-              * @param WHsection 宽高延伸[a,b]
+              * @param sectionWH 以中心点为中心的宽高[w,h]
               * @param width 粒子的宽度区间[a,b]
               * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
+              * @param rotation 角度旋转[a,b]
               * @param urlArr 图片地址集合，默认为框架中随机的样式
               * @param colorRGBA 上色色值区间[[R,G,B,A],[R,G,B,A]]
               * @param zOder 层级，默认为0
@@ -1970,49 +1993,51 @@ export module lwg {
               * @param speed 吸入速度区间[a,b]
               * @param accelerated 加速度区间[a,b]
               */
-            export function _fallingVertical(parent, centerPoint?: Laya.Point, PosSection?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number, distance?: Array<number>, speed?: Array<number>, accelerated?: Array<number>,): void {
-                let Img = new ImgBase(parent, centerPoint, PosSection, width, height, urlArr, colorRGBA, zOder);
-                let speed0 = speed ? Tools.randomOneNumer(speed[0], speed[1]) : Tools.randomOneNumer(4, 8);
-                let accelerated0 = accelerated ? Tools.randomOneNumer(accelerated[0], accelerated[1]) : Tools.randomOneNumer(0.25, 0.45);
+            export function _fallingVertical(parent: Laya.Sprite, centerPoint?: Laya.Point, sectionWH?: Array<number>, width?: Array<number>, height?: Array<number>, rotation?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number, distance?: Array<number>, speed?: Array<number>, accelerated?: Array<number>): Laya.Image {
+                let Img = new _ParticleImgBase(parent, centerPoint, sectionWH, width, height, rotation, urlArr, colorRGBA, zOder);
+                let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(4, 8);
+                let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.25, 0.45);
                 let acc = 0;
-                let caller = {
+                let moveCaller = {
                     alpha: true,
                     move: false,
                     vinish: false,
                 };
+                Img['moveCaller'] = moveCaller;
                 let distance0 = 0;
-                let distance1 = distance ? Tools.randomOneNumer(distance[0], distance[1]) : Tools.randomOneNumer(100, 300);
-                TimerAdmin._frameLoop(1, caller, () => {
-                    if (Img.alpha < 1 && caller.alpha) {
+                let distance1 = distance ? Tools.randomOneNumber(distance[0], distance[1]) : Tools.randomOneNumber(100, 300);
+                TimerAdmin._frameLoop(1, moveCaller, () => {
+                    if (Img.alpha < 1 && moveCaller.alpha) {
                         Img.alpha += 0.05;
                         distance0 = Img.y++;
                         if (Img.alpha >= 1) {
-                            caller.alpha = false;
-                            caller.move = true;
+                            moveCaller.alpha = false;
+                            moveCaller.move = true;
                         }
                     }
-                    if (distance0 < distance1 && caller.move) {
+                    if (distance0 < distance1 && moveCaller.move) {
                         acc += accelerated0;
                         distance0 = Img.y += (speed0 + acc);
                         if (distance0 >= distance1) {
-                            caller.move = false;
-                            caller.vinish = true;
+                            moveCaller.move = false;
+                            moveCaller.vinish = true;
                         }
                     }
-                    if (caller.vinish) {
+                    if (moveCaller.vinish) {
                         acc -= accelerated0 / 2;
                         Img.alpha -= 0.03;
                         Img.y += (speed0 + acc);
                         if (Img.alpha <= 0 || (speed0 + acc) <= 0) {
                             Img.removeSelf();
-                            Laya.timer.clearAll(caller);
+                            Laya.timer.clearAll(moveCaller);
                         }
                     }
                 })
+                return Img;
             }
 
             /**
-             * 徐徐向上，类似于蒸汽上升，烟雾上升，光点上升
+             * 发射一个徐徐向上的粒子，类似于蒸汽上升，烟雾上升，光点上升，气球上升
              * @param parent 父节点
              * @param caller 执行域
              * @param centerPoint 中心点
@@ -2021,50 +2046,199 @@ export module lwg {
              * @param width 粒子的宽度区间[a,b]
              * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
              * @param urlArr 图片地址集合，默认为框架中随机的样式
-             * @param speed 吸入速度区间[a,b]
+             * @param colorRGBA 上色色值区间[[R,G,B,A],[R,G,B,A]]
+             * @param speed  速度区间[a,b]
              * @param accelerated 加速度区间[a,b]
              * @param zOder 层级，默认为0
              */
-            export function _slowlyUp(parent, centerPoint: Laya.Point, radius: Array<number>, rotation?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, speed?: Array<number>, accelerated?: number, zOder?: number) {
-                let Img = new ImgBase(parent, centerPoint, PosSection, width, height, urlArr, colorRGBA, zOder);
-                let speed0 = speed ? Tools.randomOneNumer(speed[0], speed[1]) : Tools.randomOneNumer(4, 8);
-                let accelerated0 = accelerated ? Tools.randomOneNumer(accelerated[0], accelerated[1]) : Tools.randomOneNumer(0.25, 0.45);
+            export function _slowlyUp(parent: Laya.Sprite, centerPoint?: Laya.Point, sectionWH?: Array<number>, width?: Array<number>, height?: Array<number>, rotation?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number, distance?: Array<number>, speed?: Array<number>, accelerated?: Array<number>): Laya.Image {
+                let Img = new _ParticleImgBase(parent, centerPoint, sectionWH, width, height, rotation, urlArr, colorRGBA, zOder);
+                let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(1.5, 2);
+                let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.001, 0.005);
                 let acc = 0;
-                let caller = {
+                let moveCaller = {
                     alpha: true,
                     move: false,
                     vinish: false,
                 };
+                Img['moveCaller'] = moveCaller;
+                let fy = Img.y;
                 let distance0 = 0;
-                let distance1 = distance ? Tools.randomOneNumer(distance[0], distance[1]) : Tools.randomOneNumer(100, 300);
-                TimerAdmin._frameLoop(1, caller, () => {
-                    if (Img.alpha < 1 && caller.alpha) {
-                        Img.alpha += 0.05;
-                        distance0 = Img.y++;
+                let distance1 = distance ? Tools.randomOneNumber(distance[0], distance[1]) : Tools.randomOneNumber(-250, -600);
+                TimerAdmin._frameLoop(1, moveCaller, () => {
+                    if (Img.alpha < 1 && moveCaller.alpha) {
+                        Img.alpha += 0.03;
                         if (Img.alpha >= 1) {
-                            caller.alpha = false;
-                            caller.move = true;
+                            moveCaller.alpha = false;
+                            moveCaller.move = true;
                         }
                     }
-                    if (distance0 < distance1 && caller.move) {
-                        acc += accelerated0;
-                        distance0 = Img.y += (speed0 + acc);
-                        if (distance0 >= distance1) {
-                            caller.move = false;
-                            caller.vinish = true;
-                        }
+                    if (distance0 > distance1 && moveCaller.move) {
+
+                    } else {
+                        moveCaller.move = false;
+                        moveCaller.vinish = true;
                     }
-                    if (caller.vinish) {
-                        acc -= accelerated0 / 2;
-                        Img.alpha -= 0.03;
-                        Img.y += (speed0 + acc);
-                        if (Img.alpha <= 0 || (speed0 + acc) <= 0) {
+                    if (moveCaller.vinish) {
+                        Img.alpha -= 0.02;
+                        Img.scaleX -= 0.005;
+                        Img.scaleY -= 0.005;
+                        if (Img.alpha <= 0) {
                             Img.removeSelf();
-                            Laya.timer.clearAll(caller);
+                            Laya.timer.clearAll(moveCaller);
                         }
+                    }
+                    acc += accelerated0;
+                    Img.y -= (speed0 + acc);
+                    distance0 = fy - Img.y;
+                })
+                return Img;
+            }
+
+            /**
+               * 单个，四周，喷射，旋转爆炸
+               * @param parent 父节点
+               * @param caller 执行域
+               * @param centerPoint 中心点
+               * @param width 粒子的宽度区间[a,b]
+               * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
+               * @param rotation 旋转角度
+               * @param angle 角度区间，默认为360
+               * @param urlArr 图片地址集合，默认为框架中随机的样式
+               * @param colorRGBA 上色色值区间[[R,G,B,A],[R,G,B,A]]
+               * @param distance 移动距离区间[a,b]
+               * @param rotationSpeed 旋转速度
+               * @param speed  速度区间[a,b]
+               * @param accelerated 加速度区间[a,b]
+               * @param zOder 层级，默认为0
+               */
+            export function _spray(parent: Laya.Sprite, centerPoint?: Laya.Point, width?: Array<number>, height?: Array<number>, rotation?: Array<number>, angle?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number, distance?: Array<number>, rotationSpeed?: Array<null>, speed?: Array<number>, accelerated?: Array<number>): Laya.Image {
+                let Img = new _ParticleImgBase(parent, centerPoint, [0, 0], width, height, rotation, urlArr, colorRGBA, zOder);
+                let centerPoint0 = centerPoint ? centerPoint : new Laya.Point(0, 0);
+                let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(3, 10);
+                let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.25, 0.45);
+                let acc = 0;
+                let moveCaller = {
+                    alpha: true,
+                    move: false,
+                    vinish: false,
+                };
+                Img['moveCaller'] = moveCaller;
+                let radius = 0;
+                let distance1 = distance ? Tools.randomOneNumber(distance[0], distance[1]) : Tools.randomOneNumber(100, 200);
+                let angle0 = angle ? Tools.randomOneNumber(angle[0], angle[1]) : Tools.randomOneNumber(0, 360);
+                let rotationSpeed0 = rotationSpeed ? Tools.randomOneNumber(rotationSpeed[0], rotationSpeed[1]) : Tools.randomOneNumber(0, 20);
+                TimerAdmin._frameLoop(1, moveCaller, () => {
+                    Img.rotation += rotationSpeed0;
+                    if (Img.alpha < 1 && moveCaller.alpha) {
+                        Img.alpha += 0.5;
+                        if (Img.alpha >= 1) {
+                            moveCaller.alpha = false;
+                            moveCaller.move = true;
+                        }
+                    } else {
+                        if (radius < distance1 && moveCaller.move) {
+
+                        } else {
+                            moveCaller.move = false;
+                            moveCaller.vinish = true;
+                        }
+                        if (moveCaller.vinish) {
+                            Img.alpha -= 0.05;
+                            if (Img.alpha <= 0.3) {
+                                Img.removeSelf();
+                                Laya.timer.clearAll(moveCaller);
+                            }
+                        }
+                        acc += accelerated0;
+                        radius += speed0 + acc;
+                        let point = Tools.point_GetRoundPos(angle0, radius, centerPoint0);
+                        Img.pos(point.x, point.y);
                     }
                 })
+                return Img;
+            }
 
+            /**
+             * 单个，移动到目标位置，再次移动一点，然后消失
+             * @param parent 父节点
+             * @param caller 执行域
+             * @param centerPoint 中心点
+             * @param width 粒子的宽度区间[a,b]
+             * @param height 粒子的高度区间[a,b],如果为空，这高度和宽度一样
+             * @param rotation 旋转角度
+             * @param angle 角度区间，默认为360
+             * @param urlArr 图片地址集合，默认为框架中随机的样式
+             * @param colorRGBA 上色色值区间[[R,G,B,A],[R,G,B,A]]
+             * @param distance 移动距离区间[a,b]
+             * @param rotationSpeed 旋转速度
+             * @param speed  速度区间[a,b]
+             * @param accelerated 加速度区间[a,b]
+             * @param zOder 层级，默认为0
+             */
+            export function _moveToTargetToMove(parent: Laya.Sprite, centerPoint?: Laya.Point, width?: Array<number>, height?: Array<number>, rotation?: Array<number>, angle?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, zOder?: number, distance1?: Array<number>, distance2?: Array<number>, rotationSpeed?: Array<null>, speed?: Array<number>, accelerated?: Array<number>): Laya.Image {
+                let Img = new _ParticleImgBase(parent, centerPoint, [0, 0], width, height, rotation, urlArr, colorRGBA, zOder);
+                let centerPoint0 = centerPoint ? centerPoint : new Laya.Point(0, 0);
+                let speed0 = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(5, 6);
+                let accelerated0 = accelerated ? Tools.randomOneNumber(accelerated[0], accelerated[1]) : Tools.randomOneNumber(0.25, 0.45);
+                let acc = 0;
+                let moveCaller = {
+                    alpha: true,
+                    move1: false,
+                    stop: false,
+                    move2: false,
+                    vinish: false,
+                };
+                Img['moveCaller'] = moveCaller;
+                let radius = 0;
+                let dis1 = distance1 ? Tools.randomOneNumber(distance1[0], distance1[1]) : Tools.randomOneNumber(100, 200);
+                let dis2 = distance2 ? Tools.randomOneNumber(distance2[0], distance2[1]) : Tools.randomOneNumber(100, 200);
+
+                let angle0 = angle ? Tools.randomOneNumber(angle[0], angle[1]) : Tools.randomOneNumber(0, 360);
+                Img.rotation = angle0 - 90;
+                let rotationSpeed0 = rotationSpeed ? Tools.randomOneNumber(rotationSpeed[0], rotationSpeed[1]) : Tools.randomOneNumber(0, 20);
+                TimerAdmin._frameLoop(1, moveCaller, () => {
+                    if (moveCaller.alpha) {
+                        acc += accelerated0;
+                        radius += speed0 + acc;
+                        Img.alpha += 0.5;
+                        if (Img.alpha >= 1) {
+                            moveCaller.alpha = false;
+                            moveCaller.move1 = true;
+                        }
+                    } else if (moveCaller.move1) {
+                        acc += accelerated0;
+                        radius += speed0 + acc;
+                        if (radius >= dis1) {
+                            moveCaller.move1 = false;
+                            moveCaller.stop = true;
+                        }
+                    } else if (moveCaller.stop) {
+                        acc -= 0.3;
+                        radius += 0.1;
+                        if (acc <= 0) {
+                            moveCaller.stop = false;
+                            moveCaller.move2 = true;
+                        }
+                    } else if (moveCaller.move2) {
+                        acc += accelerated0 / 2;
+                        radius += speed0 + acc;
+                        if (radius >= dis1 + dis2) {
+                            moveCaller.move2 = false;
+                            moveCaller.vinish = true;
+                        }
+                    } else if (moveCaller.vinish) {
+                        radius += 0.5;
+                        Img.alpha -= 0.05;
+                        if (Img.alpha <= 0) {
+                            Img.removeSelf();
+                            Laya.timer.clearAll(moveCaller);
+                        }
+                    }
+                    let point = Tools.point_GetRoundPos(angle0, radius, centerPoint0);
+                    Img.pos(point.x, point.y);
+                })
+                return Img;
             }
 
             /**
@@ -2081,19 +2255,19 @@ export module lwg {
              * @param accelerated 加速度区间[a,b]
              * @param zOder 层级，默认为0
              */
-            export function _AnnularInhalation(parent, centerPoint: Laya.Point, radius: Array<number>, rotation?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, speed?: Array<number>, accelerated?: number, zOder?: number): void {
+            export function _AnnularInhalation(parent, centerPoint: Laya.Point, radius: Array<number>, rotation?: Array<number>, width?: Array<number>, height?: Array<number>, urlArr?: Array<string>, speed?: Array<number>, accelerated?: number, zOder?: number): Laya.Image {
                 let Img = new Laya.Image();
                 parent.addChild(Img);
                 width = width ? width : [25, 50];
-                Img.width = Tools.randomCountNumer(width[0], width[1])[0];
-                Img.height = height ? Tools.randomCountNumer(height[0], height[1])[0] : Img.width;
+                Img.width = Tools.randomCountNumber(width[0], width[1])[0];
+                Img.height = height ? Tools.randomCountNumber(height[0], height[1])[0] : Img.width;
                 Img.pivotX = Img.width / 2;
                 Img.pivotY = Img.height / 2;
-                Img.skin = urlArr ? Tools.arrayRandomGetOut(urlArr)[0] : _SkinUrl[Tools.randomCountNumer(0, 12)[0]];
-                let radius0 = Tools.randomCountNumer(radius[0], radius[1])[0];
+                Img.skin = urlArr ? Tools.arrayRandomGetOut(urlArr)[0] : _SkinUrl[Tools.randomCountNumber(0, 12)[0]];
+                let radius0 = Tools.randomCountNumber(radius[0], radius[1])[0];
                 Img.alpha = 0;
-                let speed0 = speed ? Tools.randomCountNumer(speed[0], speed[1])[0] : Tools.randomCountNumer(5, 10)[0];
-                let angle = rotation ? Tools.randomCountNumer(rotation[0], rotation[1])[0] : Tools.randomCountNumer(0, 360)[0];
+                let speed0 = speed ? Tools.randomCountNumber(speed[0], speed[1])[0] : Tools.randomCountNumber(5, 10)[0];
+                let angle = rotation ? Tools.randomCountNumber(rotation[0], rotation[1])[0] : Tools.randomCountNumber(0, 360)[0];
                 let caller = {};
                 let acc = 0;
                 accelerated = accelerated ? accelerated : 0.35;
@@ -2113,140 +2287,212 @@ export module lwg {
                         Laya.timer.clearAll(caller);
                     }
                 })
+                return Img;
             }
-
-
-
-
         }
 
-
-
-
-        /**
-         * 渐隐渐出循环闪光
-         * @param parent 父节点
-         * @param caller 执行域，一般是当前执行的脚本，最后一并清理
-         * @param x x位置
-         * @param y y位置
-         * @param width 宽
-         * @param height 高
-         * @param zOder 层级
-         * @param url 图片地址
-         * @param speed 闪烁速度
-         * @param count 默认不限次数
-         */
-        export function light_SimpleInfinite(parent, x: number, y: number, width: number, height: number, zOder: number, url?: string, speed?: number): void {
-            let Img = new Laya.Image();
-            parent.addChild(Img);
-            Img.pos(x, y);
-            Img.width = width;
-            Img.height = height;
-            Img.pivotX = width / 2;
-            Img.pivotY = height / 2;
-            Img.skin = url ? url : _SkinUrl[24];
-            Img.alpha = 0;
-            Img.zOrder = zOder ? zOder : 0;
-            let add = true;
-            let caller = {};
-            let func = () => {
-                if (!add) {
-                    Img.alpha -= speed ? speed : 0.01;
-                    if (Img.alpha <= 0) {
-                        if (caller['end']) {
-                            Laya.timer.clearAll(caller);
-                            Img.removeSelf();
-                        } else {
-                            add = true;
-                        }
-                    }
-                } else {
-                    Img.alpha += speed ? speed * 2 : 0.01 * 2;
-                    if (Img.alpha >= 1) {
-                        add = false;
-                        caller['end'] = true;
-                    }
+        /**闪光*/
+        export module _Glitter {
+            export class _GlitterImage extends Laya.Image {
+                constructor(parent: Laya.Sprite, centerPos: Laya.Point, radiusXY: Array<number>, urlArr: Array<string>, colorRGBA: Array<Array<number>>, width: Array<number>, height: Array<number>) {
+                    super();
+                    parent.addChild(this);
+                    this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.星星1;
+                    this.width = width ? Tools.randomOneNumber(width[0], width[1]) : 80;
+                    this.height = height ? Tools.randomOneNumber(height[0], height[1]) : this.width;
+                    this.pivotX = this.width / 2;
+                    this.pivotY = this.height / 2;
+                    let p = radiusXY ? Tools.point_RandomPointByCenter(centerPos, radiusXY[0], radiusXY[1], 1) : Tools.point_RandomPointByCenter(centerPos, 100, 100, 1);
+                    this.pos(p[0].x, p[0].y);
+                    let RGBA = [];
+                    RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                    RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                    RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                    RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
+                    Color._colour(this, RGBA);
+                    this.alpha = 0;
                 }
             }
-            Laya.timer.frameLoop(1, caller, func)
-        }
 
-        /**
-         * 在一个点内的随机范围内，创建一个星星，闪烁后消失
-         * @param parent 父节点
-         * @param centerPos 中心点
-         * @param radiusX X轴半径，默认问100
-         * @param radiusY Y轴半径，默认为100
-         * @param skinUrl 图片地址，默认为星星图片
-         * @param width 图片宽度，默认为50;
-         * @param height 图片宽度，默认为50;
-         * @param rotationSpeed 角度变化速率,默认为正负5度
-         */
-        export function blink_Star(parent, centerPos: Laya.Point, radiusX?: number, radiusY?: number, skinUrl?: string, width?: number, height?: number, speed?: number, rotationSpeed?: number): void {
-            if (!rotationSpeed) {
-                rotationSpeed = Tools.randomOneHalf() == 0 ? -5 : 5;
+
+            /**
+             * 在一个点内的随机范围内，创建一个星星，闪烁后消失
+             * @param parent 父节点
+             * @param centerPos 中心点
+             * @param radiusXY X,Y轴半径，默认问100
+             * @param urlArr 图片地址[]，默认为星星图片
+             * @param colorRGBA 上色区间[[][]]
+             * @param width [a,b];
+             * @param height [a,b]如果为null则为width;
+             * @param scale  放大到区间 [a,b]
+             * @param speed  闪烁速度区间[a,b],默认[0.01,0.02]
+             * @param rotateSpeed 旋转速率区间[a,b],默认为正负5度
+             */
+            export function _blinkStar(parent: Laya.Sprite, centerPos?: Laya.Point, radiusXY?: Array<number>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, width?: Array<number>, height?: Array<number>, scale?: Array<number>, speed?: Array<number>, rotateSpeed?: Array<number>): Laya.Image {
+                let Img = new _GlitterImage(parent, centerPos, radiusXY, urlArr, colorRGBA, width, height);
+                // 最大放大大小
+                Img.scaleX = 0;
+                Img.scaleY = 0;
+                let _scale = scale ? Tools.randomOneNumber(scale[0], scale[1]) : Tools.randomOneNumber(0.8, 1.2);
+                let _speed = speed ? Tools.randomOneNumber(speed[0], speed[1]) : Tools.randomOneNumber(0.01, 0.02);
+                let _rotateSpeed = rotateSpeed ? Tools.randomOneInt(rotateSpeed[0], rotateSpeed[1]) : Tools.randomOneInt(0, 5);
+                _rotateSpeed = Tools.randomOneHalf() == 0 ? -_rotateSpeed : _rotateSpeed;
+                let moveCaller = {
+                    appear: true,
+                    scale: false,
+                    vanish: false,
+                };
+                Img['moveCaller'] = moveCaller;
+                var ani = () => {
+                    if (moveCaller.appear) {
+                        Img.alpha += 0.1;
+                        Img.rotation += _rotateSpeed;
+                        Img.scaleX = Img.scaleY += _speed;
+                        if (Img.alpha >= 1) {
+                            moveCaller.appear = false;
+                            moveCaller.scale = true;
+                        }
+                    } else if (moveCaller.scale) {
+                        Img.rotation += _rotateSpeed;
+                        Img.scaleX = Img.scaleY += _speed;
+                        if (Img.scaleX > _scale) {
+                            moveCaller.scale = false;
+                            moveCaller.vanish = true;
+                        }
+                    } else if (moveCaller.vanish) {
+                        Img.rotation -= _rotateSpeed;
+                        Img.alpha -= 0.015;
+                        Img.scaleX -= 0.01;
+                        Img.scaleY -= 0.01;
+                        if (Img.scaleX <= 0) {
+                            Img.removeSelf();
+                            Laya.timer.clearAll(moveCaller);
+                        }
+                    }
+                }
+                Laya.timer.frameLoop(1, moveCaller, ani);
+                return Img;
             }
-            let star = Laya.Pool.getItemByClass('star_Blink', Laya.Image) as Laya.Image;
-            star.name = 'star_Blink';//标识符和名称一样
-            let num;
-            if (skinUrl == _SkinStyle.star || !skinUrl) {
-                num = 12 + Math.floor(Math.random() * 12);
-                star.skin = _SkinUrl[num];
-            } else if (skinUrl == _SkinStyle.dot) {
-                num = Math.floor(Math.random() * 12);
-                star.skin = _SkinUrl[num];
-            } else {
-                star.skin = skinUrl;
-            }
-            star.alpha = 0;
-            star.width = width;
-            star.height = height;
-            star.scaleX = 0;
-            star.scaleY = 0;
-            star.pivotX = star.width / 2;
-            star.pivotY = star.height / 2;
-            parent.addChild(star);
-            let p = Tools.point_RandomPointByCenter(centerPos, radiusX, radiusY, 1);
-            star.pos(p[0].x, p[0].y);
 
-            // 最大放大大小
-            let maxScale = Tools.randomCountNumer(0.8, 1.2)[0];
-
-            let timer = 0;
-            let caller = {};
-            var ani = () => {
-                timer++;
-                if (timer > 0 && timer <= 20) {
-                    star.alpha += 0.1;
-                    star.rotation += rotationSpeed;
-                    star.scaleX += 0.011;
-                    star.scaleY += 0.011;
-                } else if (timer > 20) {
-                    if (!star['reduce']) {
-                        if (star.scaleX > maxScale) {
-                            star['reduce'] = true;
-                        } else {
-                            star.rotation += rotationSpeed;
-                            star.scaleX += 0.02;
-                            star.scaleY += 0.02;
+            /**
+           * 渐隐渐出循环闪光
+           * @param parent 父节点
+           * @param caller 执行域，一般是当前执行的脚本，最后一并清理
+           * @param x x位置
+           * @param y y位置
+           * @param width 宽
+           * @param height 高
+           * @param zOder 层级
+           * @param url 图片地址
+           * @param speed 闪烁速度
+           * @param count 默认不限次数
+           */
+            export function _simpleInfinite(parent: Laya.Sprite, x: number, y: number, width: number, height: number, zOder: number, url?: string, speed?: number): Laya.Image {
+                let Img = new Laya.Image();
+                parent.addChild(Img);
+                Img.pos(x, y);
+                Img.width = width;
+                Img.height = height;
+                Img.pivotX = width / 2;
+                Img.pivotY = height / 2;
+                Img.skin = url ? url : _SkinUrl[24];
+                Img.alpha = 0;
+                Img.zOrder = zOder ? zOder : 0;
+                let add = true;
+                let caller = {};
+                let func = () => {
+                    if (!add) {
+                        Img.alpha -= speed ? speed : 0.01;
+                        if (Img.alpha <= 0) {
+                            if (caller['end']) {
+                                Laya.timer.clearAll(caller);
+                                Img.removeSelf();
+                            } else {
+                                add = true;
+                            }
                         }
                     } else {
-                        star.rotation -= rotationSpeed;
-                        star.alpha -= 0.015;
-                        star.scaleX -= 0.01;
-                        star.scaleY -= 0.01;
-                        if (star.scaleX <= 0) {
-                            star.removeSelf();
-                            Laya.timer.clearAll(caller);
+                        Img.alpha += speed ? speed * 2 : 0.01 * 2;
+                        if (Img.alpha >= 1) {
+                            add = false;
+                            caller['end'] = true;
                         }
                     }
                 }
-
+                Laya.timer.frameLoop(1, caller, func);
+                return Img;
             }
-            Laya.timer.frameLoop(1, caller, ani);
+        }
+
+        /**循环模块*/
+        export module _circulation {
+            /**循环模块基类*/
+            export class _circulationImage extends Laya.Image {
+                constructor(parent: Laya.Sprite, urlArr: Array<string>, colorRGBA: Array<Array<number>>, width: Array<number>, height: Array<number>, zOder: number) {
+                    super();
+                    parent.addChild(this);
+                    this.skin = urlArr ? Tools.arrayRandomGetOne(urlArr) : _SkinUrl.圆形发光1;
+                    this.width = width ? Tools.randomOneNumber(width[0], width[1]) : 80;
+                    this.height = height ? Tools.randomOneNumber(height[0], height[1]) : this.width;
+                    this.pivotX = this.width / 2;
+                    this.pivotY = this.height / 2;
+                    let RGBA = [];
+                    RGBA[0] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][0], colorRGBA[1][0]) : Tools.randomOneNumber(0, 255);
+                    RGBA[1] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][1], colorRGBA[1][1]) : Tools.randomOneNumber(0, 255);
+                    RGBA[2] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][2], colorRGBA[1][2]) : Tools.randomOneNumber(0, 255);
+                    RGBA[3] = colorRGBA ? Tools.randomOneNumber(colorRGBA[0][3], colorRGBA[1][3]) : Tools.randomOneNumber(0, 255);
+                    Color._colour(this, RGBA);
+                    this.zOrder = zOder ? zOder : 0;
+                    this.alpha = 0;
+                    this.scaleX = 0;
+                    this.scaleY = 0;
+                }
+            }
+
+            /**
+             * 多点循环，在一组点中，以第一个点为起点，最后一个点为终点无限循环
+             * @param {Laya.Sprite} parent 父节点
+             * @param {Array<Array<number>>} [posArray] 坐标点集合[[x,y]]
+             * @param {Array<string>} [urlArr] 皮肤结合
+             * @param {Array<Array<number>>} [colorRGBA] 颜色区间[[ ][ ]]               
+             * @param {Array<number>} [width] 宽度区间[a,b]
+             * @param {Array<number>} [height] 高度区间[a,b]
+             * @param {number} [zOder] 层级
+             * @param {number} [speed] 速度
+             */
+            export function _corner(parent: Laya.Sprite, posArray: Array<Array<number>>, urlArr?: Array<string>, colorRGBA?: Array<Array<number>>, width?: Array<number>, height?: Array<number>, zOder?: number, speed?: number): void {
+                if (posArray.length <= 1) {
+                    return;
+                }
+                let Img = new _circulationImage(parent, urlArr, colorRGBA, width, height, zOder);
+                Img.pos(posArray[0][0], posArray[0][1]);
+                Img.alpha = 1;
+                let moveCaller = {
+                    num: 0,
+                };
+                Img['moveCaller'] = moveCaller;
+                let _speed = speed ? speed : 10;
+                let index = 0;
+                Img.scale(1, 1);
+                var func = () => {
+                    let targetXY = [posArray[index][0], posArray[index][1]];
+                    let distance = (new Laya.Point()).distance(targetXY[0], targetXY[1]);
+                    let time = distance / _speed * 100;
+                    if (index == posArray.length + 1) {
+                        targetXY = [posArray[0][0], posArray[0][1]];
+                    }
+                    Animation2D.move_Simple(Img, Img.x, Img.y, targetXY[0], targetXY[1], time, 0, () => {
+                        index++;
+                        if (index == posArray.length) {
+                            index = 0;
+                        }
+                        func();
+                    });
+                }
+                func();
+            }
         }
     }
-
     /**点击事件模块 */
     export module Click {
         /**
@@ -4039,13 +4285,12 @@ export module lwg {
             number = Math.floor(Math.random() * 2);
             return number;
         }
-
         /**
-         * 在某个区间内取一个整数
-         * @param section1 区间1
-         * @param section2 区间2，不输入则是0~section1
-         */
-        export function randomNumber(section1, section2?: number): number {
+      * 在某个区间内取一个整数
+      * @param section1 区间1
+      * @param section2 区间2，不输入则是0~section1
+      */
+        export function randomOneInt(section1, section2?: number): number {
             if (section2) {
                 return Math.floor(Math.random() * (section2 - section1)) + section1;
             } else {
@@ -4060,7 +4305,7 @@ export module lwg {
          * @param count 数量默认是1个
          * @param intSet 是否是整数,默认是整数，为true
          */
-        export function randomCountNumer(section1: number, section2?: number, count?: number, intSet?: boolean): Array<number> {
+        export function randomCountNumber(section1: number, section2?: number, count?: number, intSet?: boolean): Array<number> {
             let arr = [];
             if (!count) {
                 count = 1;
@@ -4102,7 +4347,7 @@ export module lwg {
         * @param count 数量默认是1个
         * @param intSet 是否是整数,默认是整数，为true
         */
-        export function randomOneNumer(section1: number, section2?: number, intSet?: boolean): number {
+        export function randomOneNumber(section1: number, section2?: number, intSet?: boolean): number {
 
             if (intSet == undefined) {
                 intSet = true;
@@ -4793,8 +5038,8 @@ export module lwg {
             }
             let arr: Array<Laya.Point> = [];
             for (let index = 0; index < count; index++) {
-                let x0 = Tools.randomCountNumer(0, radiusX, 1, false);
-                let y0 = Tools.randomCountNumer(0, radiusY, 1, false);
+                let x0 = Tools.randomCountNumber(0, radiusX, 1, false);
+                let y0 = Tools.randomCountNumber(0, radiusY, 1, false);
                 let diffX = Tools.randomOneHalf() == 0 ? x0[0] : -x0[0];
                 let diffY = Tools.randomOneHalf() == 0 ? y0[0] : -y0[0];
                 let p = new Laya.Point(centerPos.x + diffX, centerPos.y + diffY);
