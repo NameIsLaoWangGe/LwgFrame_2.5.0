@@ -1,0 +1,7 @@
+{
+  "code": "import { Admin, Loding } from \"./lwg\";\r\nimport UIInit from \"./_Init\";\r\nexport default class UILoding extends Loding.LodingScene {\r\n    lwgOnAwake() {\r\n        Admin._sceneScript = {\r\n            UIInit: UIInit,\r\n        };\r\n        Loding.list_2DPic = [];\r\n        Loding.list_2DScene = [\r\n            \"Scene/UIInit.json\",\r\n            \"Scene/UIStart.json\",\r\n        ];\r\n        Loding.list_2DPrefab = [];\r\n        Loding.list_3DScene = [];\r\n        Loding.list_3DPrefab = [];\r\n        Loding.list_JsonData = [];\r\n    }\r\n    lwgAdaptive() {\r\n    }\r\n    lwgOnEnable() {\r\n    }\r\n    lwgOpenAni() { return 0; }\r\n    lodingPhaseComplete() {\r\n    }\r\n    lodingComplete() {\r\n        return 200;\r\n    }\r\n}\r\n",
+  "references": [
+    "D:/Game/project/LwgFrame/Project_2.5.0/LwgFrame_2.5.0/src/script/Frame/lwg.ts",
+    "D:/Game/project/LwgFrame/Project_2.5.0/LwgFrame_2.5.0/src/script/Frame/_Init.ts"
+  ]
+}
