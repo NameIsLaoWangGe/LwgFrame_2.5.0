@@ -45,12 +45,7 @@ export default class UILoding extends Loding.LodingScene {
             // "GameData/Game/Card.json",
             // "GameData/EasterEgg/EasterEgg.json",
         ];
-        Admin._sceneScript = {
-            UILoding: UILoding,
-            // UIInit: UIInit,
-            UIStart: UIStart,
-            GameScene: GameScene,
-        }
+      
     }
     lwgAdaptive(): void {
     }
