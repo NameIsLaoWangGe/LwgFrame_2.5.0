@@ -1,0 +1,10 @@
+[
+  {
+    "flatMessage": "Module '\"../../../../../../../../Game/project/LwgFrame/Project_2.5.0/LwgFrame_2.5.0_1/src/script/Frame/lwg\"' has no exported member 'Task'.",
+    "formatted": "\u001b[96m../../../../Game/project/LwgFrame/Project_2.5.0/LwgFrame_2.5.0_1/src/script/Game/UITask.ts\u001b[0m:\u001b[93m1\u001b[0m:\u001b[93m10\u001b[0m - \u001b[91merror\u001b[0m\u001b[90m TS2305: \u001b[0mModule '\"../../../../../../../../Game/project/LwgFrame/Project_2.5.0/LwgFrame_2.5.0_1/src/script/Frame/lwg\"' has no exported member 'Task'.\r\n\r\n\u001b[7m1\u001b[0m import { Task, Admin } from \"../Frame/lwg\";\r\n\u001b[7m \u001b[0m \u001b[91m         ~~~~\u001b[0m\r\n",
+    "category": 1,
+    "code": 2305,
+    "type": "semantic",
+    "fileLine": "D:/Game/project/LwgFrame/Project_2.5.0/LwgFrame_2.5.0_1/src/script/Game/UITask.ts(1,10)"
+  }
+]
