@@ -92,7 +92,7 @@ export module _Game {
         }
         moduleOnEnable(): void {
         }
-        moduleEventregister(): void {
+        moduleEventRegister(): void {
         }
     }
     /**其他类*/
@@ -115,7 +115,6 @@ export default class GameScene extends _Game._GameGeneral {
     lwgOnEnable(): void {
     }
     lwgBtnClick(): void {
-        this.btnVar('BtnBack')
         Click._on(Click._Type.largen, this.btnVar('BtnBack'), this, null, null, () => {
             Admin._openScene(Admin._SceneName.UIStart, this.calssName);
         });

@@ -7,10 +7,13 @@ export module _PreLoadSceneBefore {
     //     event1 = '_PreLoadPageBefore_Event1',
     //     event2 = '_PreLoadPageBefore_Event2',
     // }
+    export let _num: number = 0;
 }
 /**可以手动挂在脚本中的类，全脚本唯一的默认导出，也可动态添加，动态添加写在模块内更方便*/
 export default class UIPreLoadSceneBefore extends _PreLoad._PreLoadScene {
     lwgOnAwake(): void {
+        _PreLoadSceneBefore._num++;
+        console.log(_PreLoadSceneBefore._num);
         _PreLoad.list_3DPrefab = [
             "3DPrefab/LayaScene_GameMain/Conventional/CardContainer.lh"
         ];

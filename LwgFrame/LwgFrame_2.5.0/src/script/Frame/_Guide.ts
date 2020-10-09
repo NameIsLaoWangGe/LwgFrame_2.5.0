@@ -14,7 +14,7 @@ export module _Guide {
                     return true;
                 }
             } else {
-                return false
+                return false;
             }
         },
         set bool(bol: number | any) {
@@ -57,7 +57,7 @@ export module _Guide {
         //     DrawCard._drawCount.num = 0;
         //     DrawCard._residueDraw.num = 2;
         console.log('开始进行新手引导！');
-        Admin._openScene(_SceneName.UIStart, _SceneName.UIPreLoad, () => {
+        Admin._openScene(_SceneName.UIStart, null, () => {
             console.log('新手引导完成！')
         });
         //     Admin._openScene(Admin._SceneName.UIDrawCard, this.calssName, () => {
@@ -75,7 +75,7 @@ export module _Guide {
     export class _GuideScene extends Admin._Scene {
         moduleOnAwake(): void { }
         moduleOnEnable(): void { }
-        moduleEventregister(): void { }
+        moduleEventRegister(): void { }
     }
 }
 export default class UIGuide extends _Guide._GuideScene {
@@ -116,7 +116,7 @@ export default class UIGuide extends _Guide._GuideScene {
             }
         })
     }
-    lwgEventregister(): void {
+    lwgEventRegister(): void {
         /**第一次十连抽*/
         var step1 = () => {
             this.self["Draw"].play(0, true);

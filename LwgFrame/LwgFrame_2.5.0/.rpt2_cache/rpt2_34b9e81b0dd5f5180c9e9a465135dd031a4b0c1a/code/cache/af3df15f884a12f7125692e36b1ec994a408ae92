@@ -1,0 +1,6 @@
+{
+  "code": "import { _PreLoad } from \"./lwg\";\r\nexport var _PreLoadSceneBefore;\r\n(function (_PreLoadSceneBefore) {\r\n    _PreLoadSceneBefore._num = 0;\r\n})(_PreLoadSceneBefore || (_PreLoadSceneBefore = {}));\r\nexport default class UIPreLoadSceneBefore extends _PreLoad._PreLoadScene {\r\n    lwgOnAwake() {\r\n        _PreLoadSceneBefore._num++;\r\n        console.log(_PreLoadSceneBefore._num);\r\n        _PreLoad.list_3DPrefab = [\r\n            \"3DPrefab/LayaScene_GameMain/Conventional/CardContainer.lh\"\r\n        ];\r\n    }\r\n}\r\n",
+  "references": [
+    "D:/Game/project/LwgFrame/Project_2.5.0/LwgFrame/LwgFrame_2.5.0/src/script/Frame/lwg.ts"
+  ]
+}

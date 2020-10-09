@@ -1307,12 +1307,11 @@ export module lwg {
          * @param {number} [zOder] 指定层级，默认为最上层
          */
         export function _preLoadOpenScene(openSceneName: string, cloesSceneName?: string, func?: Function, zOder?: number) {
-            _openScene(_SceneName.UIPreLoadSceneBefore, null, () => {
-                _preLoadOpenSceneLater.openSceneName = openSceneName;
-                _preLoadOpenSceneLater.cloesSceneName = cloesSceneName;
-                _preLoadOpenSceneLater.func = func;
-                _preLoadOpenSceneLater.zOder = zOder;
-            });
+            _openScene(_SceneName.UIPreLoadSceneBefore);
+            _preLoadOpenSceneLater.openSceneName = openSceneName;
+            _preLoadOpenSceneLater.cloesSceneName = cloesSceneName;
+            _preLoadOpenSceneLater.func = func;
+            _preLoadOpenSceneLater.zOder = zOder;
         }
         /**预加载完毕后，需要打开的场景信息*/
         export let _preLoadOpenSceneLater = {
@@ -1321,6 +1320,7 @@ export module lwg {
             func: null,
             zOder: null,
         }
+
         /**
           * 打开场景
           * @param openSceneName 需要打开的场景名称
@@ -1506,7 +1506,7 @@ export module lwg {
             /**挂载当前脚本的节点*/
             self: Laya.Scene;
             /**类名*/
-            calssName: string;
+            calssName: string = _SceneName.UIPreLoad;
             constructor() {
                 super();
             }
@@ -1552,6 +1552,7 @@ export module lwg {
             bool(): boolean { return this['str'] as boolean; }
             array(): Array<any> { return this['str'] as Array<any>; }
             onAwake(): void {
+
                 this.self = this.owner as Laya.Scene;
                 // 类名
                 if (this.self.name == null) {
@@ -4372,6 +4373,19 @@ export module lwg {
                 node.removeChildren(0, node.numChildren - 1);
             }
         }
+        /**
+          * 通过某个节点名称移除某个子节点
+          * @param nodeName 节点名称
+          */
+        export function node_RemoveOneChildren(node: Laya.Node, nodeName: string): void {
+            for (let index = 0; index < node.numChildren; index++) {
+                const element = node.getChildAt(index);
+                // console.log(element);
+                if (element.name == nodeName) {
+                    element.removeSelf();
+                }
+            }
+        }
 
         /**
          * 切换显示或隐藏子节点，当输入的名称数组是显示时，其他子节点则是隐藏
@@ -6665,13 +6679,10 @@ export module lwg {
         export class _PreLoadScene extends Admin._Scene {
             moduleOnAwake(): void {
                 _PreLoad._remakeLode();
-                this.self.name = _SceneName.UIPreLoad;
-                Admin._sceneControl[Admin._SceneName.UIPreLoad] = this.self;
             }
             moduleEventRegister(): void {
                 EventAdmin.register(_EventType.loding, this, () => { this.lodingRule() });
-
-                EventAdmin.register(_EventType.complete, this, () => {
+                EventAdmin.registerOnce(_EventType.complete, this, () => {
                     let time = this.lodingComplete();
                     Laya.timer.once(time, this, () => {
                     })
@@ -6681,10 +6692,11 @@ export module lwg {
                             Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, Admin._preLoadOpenSceneLater.func, Admin._preLoadOpenSceneLater.zOder);
                         }
                     } else {
-                        _whereToLoad = _whereToLoadType.PreLoadSceneBefore;
+                        // _whereToLoad = _whereToLoadType.PreLoadSceneBefore;
                         EventAdmin.notify(_SceneName.UIInit);
                         PalyAudio.playMusic();
                     }
+                    this.self.close();
                 });
 
                 EventAdmin.register(_EventType.progress, this, () => {
