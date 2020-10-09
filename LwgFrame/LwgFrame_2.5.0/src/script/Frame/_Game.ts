@@ -19,20 +19,20 @@ export module _Game {
         getFunc1: (): any => {
             return '测试1';
         },
-        getFunc2: (any): any => {
+        getFunc2: (any: any): any => {
             return;
         },
         // 设置方法
         setFunc1: () => {
         },
-        setFunc2: (any) => {
+        setFunc2: (any: any) => {
             console.log(any);
         },
         // 检查方法
-        checkFunc1: (bool): boolean => {
+        checkFunc1: (bool: boolean): boolean => {
             return bool;
         },
-        checkFunc2: (bool): boolean => {
+        checkFunc2: (bool: boolean): boolean => {
             return bool;
         },
         // 临时属性赋值方法

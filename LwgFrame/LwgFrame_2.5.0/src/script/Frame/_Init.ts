@@ -1,11 +1,11 @@
 import GameScene from "./_Game";
 import UIGuide, { _Guide } from "./_Guide";
-import { Admin, Backpack, DrawCard, TimerAdmin, Setting, CheckIn, Loding, _SceneName } from "./lwg";
 import UIExample from "./_Example";
 // import ZJADMgr from "../../TJ/ZJADMgr";
 import UITask, { _Task } from "./_Task";
 import UIStart, { _Start } from "./_Start";
-import UIFrontPage from "./_FrontPage";
+import { Admin } from "./lwg";
+import UIPreLoadPageBefore from "./_PreLoadPageBefore";
 export module _Init {
     export function _init(): void {
         (function admin() {
@@ -14,7 +14,7 @@ export module _Init {
                 GameScene: GameScene,
                 UIGuide: UIGuide,
                 UITask: UITask,
-                UIFrontPage: UIFrontPage,
+                UIFrontPage: UIPreLoadPageBefore,
             };
             Admin._evaluating = false;
             Admin._platform = Admin._platformTpye.Bytedance;

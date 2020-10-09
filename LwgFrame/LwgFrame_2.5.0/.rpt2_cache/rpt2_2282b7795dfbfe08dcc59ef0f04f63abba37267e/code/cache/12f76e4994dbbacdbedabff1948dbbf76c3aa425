@@ -1,0 +1,6 @@
+{
+  "code": "import { Admin, _PreLoad } from \"./lwg\";\r\nexport var _PreLoadPageBefore;\r\n(function (_PreLoadPageBefore) {\r\n    class _PreLoadPageBeforeScene extends Admin._Scene {\r\n    }\r\n    _PreLoadPageBefore._PreLoadPageBeforeScene = _PreLoadPageBeforeScene;\r\n})(_PreLoadPageBefore || (_PreLoadPageBefore = {}));\r\nexport default class UIPreLoadPageBefore extends _PreLoad._PreLoadScene {\r\n    constructor() {\r\n        super();\r\n    }\r\n    lodingComplete() {\r\n        return 0;\r\n    }\r\n}\r\nexport class UIFrontPageItem extends Admin._Object {\r\n}\r\n",
+  "references": [
+    "D:/Game/project/LwgFrame/Project_2.5.0/LwgFrame/LwgFrame_2.5.0/src/script/Frame/lwg.ts"
+  ]
+}

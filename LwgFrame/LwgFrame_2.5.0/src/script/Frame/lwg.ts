@@ -1,4 +1,4 @@
-import UIFrontPage from "./_FrontPage";
+import UIFrontPage from "./_PreLoadPageBefore";
 
 /**综合模板*/
 export module lwg {
@@ -1133,7 +1133,7 @@ export module lwg {
          * @param x x位置
          * @param y y位置
          */
-        export function _createLevel(parent, x, y): void {
+        export function _createLevel(parent: Laya.Sprite, x: number, y: number): void {
             let sp: Laya.Sprite;
             Laya.loader.load('prefab/LevelNode.json', Laya.Handler.create(this, function (prefab: Laya.Prefab) {
                 let _prefab = new Laya.Prefab();
@@ -1197,9 +1197,9 @@ export module lwg {
         }
 
         /**
-        * 设置一个屏蔽场景内点击事件的的节点
-        * @param scene 场景
-       */
+         * 设置一个屏蔽场景内点击事件的的节点
+         * @param scene 场景
+        */
         export function _secneLockClick(scene: Laya.Scene): void {
             _unlockPreventClick(scene);
             let __lockClick__ = new Laya.Sprite();
@@ -1263,7 +1263,7 @@ export module lwg {
 
         /**常用场景的名称，和脚本名称保持一致*/
         export enum _SceneName {
-            UILoding = 'UILoding',
+            UIPreLoad = 'UIPreLoad',
             UIStart = 'UIStart',
             UIGuide = 'UIGuide',
             UISkin = 'UISkin',
@@ -1298,7 +1298,13 @@ export module lwg {
             UIPropTry = 'UIPropTry',
             UICard = 'UICard',
             UIInit = 'UIInit',
-            UIFrontPage = 'UIFrontPage',
+            UIPreLoadPageBefore = 'UIPreLoadPageBefore',
+        }
+
+        export function _preLoadOpenScene(openName: string, cloesName?: string, func?: Function, zOder?: number) {
+            _openScene(_SceneName.UIPreLoadPageBefore, cloesName, () => {
+                EventAdmin.notify
+            });
         }
 
         /**
@@ -1310,46 +1316,41 @@ export module lwg {
          */
         export function _openScene(openName: string, cloesName?: string, func?: Function, zOder?: number): void {
             Admin._clickLock.switch = true;
-            var open = (openName0: string, cloesName0?: string, func0?: Function, zOder0?: number) => {
-                Laya.Scene.load('Scene/' + openName0 + '.json', Laya.Handler.create(this, function (scene: Laya.Scene) {
-                    if (_sceneScript[openName0]) {
-                        if (!scene.getComponent(_sceneScript[openName0])) {
-                            scene.addComponent(_sceneScript[openName0]);
-                        }
+            Laya.Scene.load('Scene/' + openName + '.json', Laya.Handler.create(this, function (scene: Laya.Scene) {
+                if (_sceneScript[openName]) {
+                    if (!scene.getComponent(_sceneScript[openName])) {
+                        scene.addComponent(_sceneScript[openName]);
+                    }
+                } else {
+                    console.log('当前场景没有同名脚本！');
+                }
+                scene.width = Laya.stage.width;
+                scene.height = Laya.stage.height;
+                var openf = () => {
+                    if (zOder) {
+                        Laya.stage.addChildAt(scene, zOder);
                     } else {
-                        console.log('当前场景没有同名脚本！');
+                        Laya.stage.addChild(scene);
                     }
-                    scene.width = Laya.stage.width;
-                    scene.height = Laya.stage.height;
-                    var openf = () => {
-                        if (zOder0) {
-                            Laya.stage.addChildAt(scene, zOder0);
-                        } else {
-                            Laya.stage.addChild(scene);
-                        }
-                    }
-                    scene.name = openName0;
-                    _sceneControl[openName0] = scene;//装入场景容器，此容器内每个场景唯一
-                    // 背景图自适应并且居中
-                    let background = scene.getChildByName('Background') as Laya.Image;
-                    if (background) {
-                        background.width = Laya.stage.width;
-                        background.height = Laya.stage.height;
-                    }
-                    if (_sceneControl[cloesName0]) {
-                        _closeScene(cloesName0, openf);
-                    } else {
-                        openf();
-                    }
-                    if (func0) {
-                        console.log(Laya.stage);
-                        func0();
-                    }
-                }))
-            }
-            open(_SceneName.UIFrontPage, null, () => {
-                open(openName, cloesName, func, zOder);
-            });
+                }
+                scene.name = openName;
+                _sceneControl[openName] = scene;//装入场景容器，此容器内每个场景唯一
+                // 背景图自适应并且居中
+                let background = scene.getChildByName('Background') as Laya.Image;
+                if (background) {
+                    background.width = Laya.stage.width;
+                    background.height = Laya.stage.height;
+                }
+                if (_sceneControl[cloesName]) {
+                    _closeScene(cloesName, openf);
+                } else {
+                    openf();
+                }
+                if (func) {
+                    console.log(Laya.stage);
+                    func();
+                }
+            }))
         }
 
         /**
@@ -5817,7 +5818,7 @@ export module lwg {
     /**签到模块*/
     export module CheckIn {
         /**从哪个界面弹出的签到*/
-        export let _fromWhich: string = Admin._SceneName.UILoding;
+        export let _fromWhich: string = Admin._SceneName.UIPreLoad;
         /**签到list列表*/
         export let _checkList: Laya.List;
         /**列表信息*/
@@ -6557,7 +6558,7 @@ export module lwg {
         }
     }
 
-    export module Loding {
+    export module _PreLoad {
         /**3D场景的加载，其他3D物体，贴图，Mesh详见：  https://ldc2.layabox.com/doc/?nav=zh-ts-4-3-1   */
         export let list_3DScene: Array<any> = [];
         /**3D预设的加载，其他3D物体，贴图，Mesh详见：  https://ldc2.layabox.com/doc/?nav=zh-ts-4-3-1   */
@@ -6582,64 +6583,78 @@ export module lwg {
         /**进度条总长度,长度为以上三个加载资源类型的数组总长度*/
         export let sumProgress: number = 0;
         /**加载顺序依次为3d,2d,数据表，可修改*/
-        export let loadOrder: Array<any>[];
+        export let loadOrder: Array<any> = [];
         /**当前加载到哪个分类数组*/
-        export let loadOrderIndex: number;
+        export let loadOrderIndex: number = 0;
 
         /**当前进度条进度,起始位0，每加载成功1个资源，则加1,currentProgress.value / sumProgress为进度百分比*/
         export let currentProgress = {
-            p: 0,
             /**获取进度条的数量值，currentProgress.value / sumProgress为进度百分比*/
             get value(): number {
-                return this.p;
+                return this['p'] ? this['p'] : 0;
             },
             /**设置进度条的值*/
-            set value(v: number) {
-                this.p = v;
-                if (this.p >= sumProgress) {
+            set value(val: number) {
+                this['p'] = val;
+                if (this['p'] >= sumProgress) {
                     console.log('当前进度条进度为:', currentProgress.value / sumProgress);
                     console.log('进度条停止！');
                     console.log('所有资源加载完成！此时所有资源可通过例如 Laya.loader.getRes("Data/levelsData.json")获取');
-                    EventAdmin.notify(Loding.LodingType.complete);
+                    EventAdmin.notify(_PreLoad._EventType.complete);
                 } else {
                     // 当前进度达到当前长度节点时,去到下一个数组加载
                     let number = 0;
                     for (let index = 0; index <= loadOrderIndex; index++) {
                         number += loadOrder[index].length;
                     }
-                    if (this.p === number) {
+                    if (this['p'] == number) {
                         loadOrderIndex++;
                     }
-                    EventAdmin.notify(Loding.LodingType.loding);
+                    EventAdmin.notify(_PreLoad._EventType.loding);
                 }
             },
         };
-
         /**加载事件类型*/
-        export enum LodingType {
+        export enum _EventType {
             complete = 'complete',
             loding = 'loding',
             progress = 'progress',
+            pageBefore = 'pageBefore',
+        }
+        /**重制一些加载变量，方便在其他页面重新使用*/
+        export function _remakeLode(): void {
+            list_3DScene = [];
+            list_3DPrefab = [];
+            list_3DMesh = [];
+            lolist_3DBaseMaterial = [];
+            list_3DTexture2D = [];
+            list_2DPic = [];
+            list_2DScene = [];
+            list_2DPrefab = [];
+            list_JsonData = [];
+            sumProgress = 0;
+            loadOrder = [];
+            loadOrderIndex = 0;
+            currentProgress.value = 0;
         }
 
-        export class LodingScene extends Admin._Scene {
+        export class _PreLoadScene extends Admin._Scene {
             moduleOnAwake(): void {
                 this.self.name = 'UILoding';
-                Admin._sceneControl[Admin._SceneName.UILoding] = this.self;
+                Admin._sceneControl[Admin._SceneName.UIPreLoad] = this.self;
                 DateAdmin._loginNumber.value++;
                 console.log('玩家登陆的天数为：', DateAdmin._loginDate.value.length, '天');
             }
             moduleEventregister(): void {
-                EventAdmin.register(LodingType.loding, this, () => { this.lodingRule() });
+                EventAdmin.register(_EventType.loding, this, () => { this.lodingRule() });
 
-                EventAdmin.register(LodingType.complete, this, () => {
+                EventAdmin.register(_EventType.complete, this, () => {
                     let time = this.lodingComplete();
                     PalyAudio.playMusic();
-                    Laya.timer.once(time, this, () => {
-                    })
+                    Laya.timer.once(time, this, () => { })
                 });
 
-                EventAdmin.register(LodingType.progress, this, (skip) => {
+                EventAdmin.register(_EventType.progress, this, (skip) => {
                     currentProgress.value++;
                     if (currentProgress.value < sumProgress) {
                         console.log('当前进度条进度为:', currentProgress.value / sumProgress);
@@ -6663,7 +6678,7 @@ export module lwg {
                     time = 0;
                 }
                 Laya.timer.once(time, this, () => {
-                    EventAdmin.notify(Loding.LodingType.loding);
+                    EventAdmin.notify(_PreLoad._EventType.loding);
                 })
             }
 
@@ -6690,7 +6705,7 @@ export module lwg {
                             } else {
                                 console.log('2D图片' + list_2DPic[index] + '加载完成！', '数组下标为：', index);
                             }
-                            EventAdmin.notify(LodingType.progress);
+                            EventAdmin.notify(_EventType.progress);
                         }));
                         break;
 
@@ -6701,7 +6716,7 @@ export module lwg {
                             } else {
                                 console.log('2D场景' + list_2DScene[index] + '加载完成！', '数组下标为：', index);
                             }
-                            EventAdmin.notify(LodingType.progress);
+                            EventAdmin.notify(_EventType.progress);
 
                         }), null, Laya.Loader.JSON);
                         break;
@@ -6713,7 +6728,7 @@ export module lwg {
                             } else {
                                 console.log('2D预制体' + list_2DPrefab[index] + '加载完成！', '数组下标为：', index);
                             }
-                            EventAdmin.notify(LodingType.progress);
+                            EventAdmin.notify(_EventType.progress);
 
                         }), null, Laya.Loader.JSON);
                         break;
@@ -6725,7 +6740,7 @@ export module lwg {
                             } else {
                                 console.log('3D场景' + list_3DScene[index] + '加载完成！', '数组下标为：', index);
                             }
-                            EventAdmin.notify(LodingType.progress);
+                            EventAdmin.notify(_EventType.progress);
 
                         }));
                         break;
@@ -6736,7 +6751,7 @@ export module lwg {
                             } else {
                                 console.log('3D预制体' + list_3DPrefab[index] + '加载完成！', '数组下标为：', index);
                             }
-                            EventAdmin.notify(LodingType.progress);
+                            EventAdmin.notify(_EventType.progress);
 
                         }));
                         break;
@@ -6747,7 +6762,7 @@ export module lwg {
                             } else {
                                 console.log('数据表' + list_JsonData[index] + '加载完成！', '数组下标为：', index);
                             }
-                            EventAdmin.notify(LodingType.progress);
+                            EventAdmin.notify(_EventType.progress);
 
                         }), null, Laya.Loader.JSON);
                         break;
@@ -6798,8 +6813,8 @@ export let Animation3D = lwg.Animation3D;
 export let Tools = lwg.Tools;
 export let Elect = lwg.Elect;
 //场景相关 
-export let Loding = lwg.Loding;
-export let LodeScene = lwg.Loding.LodingScene;
+export let _PreLoad = lwg._PreLoad;
+export let _PreLoadScene = lwg._PreLoad._PreLoadScene;
 export let Shop = lwg.Shop;
 export let ShopScene = lwg.Shop.ShopScene;
 export let VictoryBox = lwg.VictoryBox;
