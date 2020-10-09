@@ -972,6 +972,10 @@
                    scene.width = Laya.stage.width;
                    scene.height = Laya.stage.height;
                    var openf = () => {
+                       if (Tools.node_CheckChildren(Laya.stage, openSceneName)) {
+                           console.log('场景重复出现了！请检查代码');
+                           return;
+                       }
                        if (zOder) {
                            Laya.stage.addChildAt(scene, zOder);
                        }
@@ -1172,7 +1176,6 @@
                        this.self[this.calssName] = this;
                    }
                    gameState(this.calssName);
-                   this.lwgNodeDec();
                    this.moduleOnAwake();
                    this.lwgOnAwake();
                    this.lwgAdaptive();
@@ -1185,18 +1188,21 @@
                    this.lwgEventRegister();
                    this.moduleOnEnable();
                    this.lwgOnEnable();
-                   EventAdmin.notify(_EventType._FrontPage_Close);
                    this.btnAndlwgOpenAni();
                }
                moduleOnEnable() { }
-               ;
-               lwgNodeDec() { }
                ;
                lwgEventRegister() { }
                ;
                moduleEventRegister() { }
                ;
                lwgOnEnable() { }
+               onStart() {
+                   this.moduleOnStart();
+                   this.lwgOnStart();
+               }
+               lwgOnStart() { }
+               moduleOnStart() { }
                btnAndlwgOpenAni() {
                    let time = this.lwgOpenAni();
                    if (time) {
@@ -3141,6 +3147,17 @@
                }
            }
            Tools.node_RemoveOneChildren = node_RemoveOneChildren;
+           function node_CheckChildren(node, nodeName) {
+               let bool = false;
+               for (let index = 0; index < node.numChildren; index++) {
+                   const element = node.getChildAt(index);
+                   if (element.name == nodeName) {
+                       bool = true;
+                   }
+               }
+               return bool;
+           }
+           Tools.node_CheckChildren = node_CheckChildren;
            function node_2DShowExcludedChild(node, childNameArr, bool) {
                for (let i = 0; i < node.numChildren; i++) {
                    let Child = node.getChildAt(i);
@@ -4777,12 +4794,7 @@
            _PreLoad.sumProgress = 0;
            _PreLoad.loadOrder = [];
            _PreLoad.loadOrderIndex = 0;
-           let _whereToLoadType;
-           (function (_whereToLoadType) {
-               _whereToLoadType["PreLoad"] = "_PreLoad";
-               _whereToLoadType["PreLoadSceneBefore"] = "PreLoadSceneBefore";
-           })(_whereToLoadType = _PreLoad._whereToLoadType || (_PreLoad._whereToLoadType = {}));
-           _PreLoad._whereToLoad = _whereToLoadType.PreLoad;
+           _PreLoad._whereToLoad = Admin._SceneName.UIPreLoad;
            _PreLoad.currentProgress = {
                get value() {
                    return this['len'] ? this['len'] : 0;
@@ -4839,21 +4851,27 @@
                moduleEventRegister() {
                    EventAdmin.register(_EventType.loding, this, () => { this.lodingRule(); });
                    EventAdmin.registerOnce(_EventType.complete, this, () => {
-                       console.log('记录加载次数====================》');
                        let time = this.lodingComplete();
                        Laya.timer.once(time, this, () => {
                        });
-                       if (_PreLoad._whereToLoad !== _whereToLoadType.PreLoad) {
+                       this.self.name = _PreLoad._whereToLoad;
+                       Admin._sceneControl[_PreLoad._whereToLoad] = this.self;
+                       console.log(Admin._sceneControl);
+                       if (_PreLoad._whereToLoad !== Admin._SceneName.UIPreLoad) {
                            if (Admin._preLoadOpenSceneLater.openSceneName) {
-                               Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, Admin._preLoadOpenSceneLater.func, Admin._preLoadOpenSceneLater.zOder);
+                               Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, () => {
+                                   Admin._preLoadOpenSceneLater.func;
+                                   Admin._closeScene(_PreLoad._whereToLoad);
+                               }, Admin._preLoadOpenSceneLater.zOder);
                            }
                        }
                        else {
-                           _PreLoad._whereToLoad = _whereToLoadType.PreLoadSceneBefore;
                            EventAdmin.notify(_SceneName.UIInit);
                            PalyAudio.playMusic();
+                           Admin._closeScene(_PreLoad._whereToLoad, () => {
+                               _PreLoad._whereToLoad = Admin._SceneName.UIPreLoadSceneBefore;
+                           });
                        }
-                       this.self.close();
                    });
                    EventAdmin.register(_EventType.progress, this, () => {
                        _PreLoad.currentProgress.value++;
@@ -4873,6 +4891,8 @@
                        }
                    }
                    _PreLoad.loadOrderIndex = 0;
+               }
+               moduleOnStart() {
                    let time = this.lwgOpenAni();
                    if (time == null) {
                        time = 0;
@@ -4969,18 +4989,6 @@
            }
            _PreLoad._PreLoadScene = _PreLoadScene;
        })(_PreLoad = lwg._PreLoad || (lwg._PreLoad = {}));
-       let Start;
-       (function (Start) {
-           class StartScene extends Admin._Scene {
-               moduleOnAwake() {
-               }
-               moduleOnEnable() {
-               }
-               moduleEventRegister() {
-               }
-           }
-           Start.StartScene = StartScene;
-       })(Start = lwg.Start || (lwg.Start = {}));
    })(lwg || (lwg = {}));
    var lwg$1 = lwg;
    let Admin = lwg.Admin;
@@ -5014,8 +5022,6 @@
    let Skin = lwg.Skin;
    let SkinScene = lwg.Skin.SkinScene;
    let Easteregisterg = lwg.Easteregisterg;
-   let Start = lwg.Start;
-   let StartScene = lwg.Start.StartScene;
    let Victory = lwg.Victory;
    let VictoryScene = lwg.Victory.VictoryScene;
    let Defeated = lwg.Defeated;
@@ -5046,6 +5052,8 @@
        lwgAdaptive() {
        }
        lwgOnEnable() {
+       }
+       lwgOnStart() {
        }
        lwgOpenAni() { return 0; }
        lodingPhaseComplete() {
@@ -5591,6 +5599,8 @@
            }
            moduleEventRegister() {
            }
+           moduleOnStart() {
+           }
        }
        _Start._StartScene = _StartScene;
        class _Singleton {
@@ -5599,30 +5609,29 @@
    })(_Start || (_Start = {}));
    class UIStart extends _Start._StartScene {
        lwgOnAwake() {
-           console.log(Laya.stage);
        }
        lwgBtnClick() {
            Click._on(Click._Type.largen, this.btnVar('BtnStart'), this, null, null, () => {
-               Admin._preLoadOpenScene(_SceneName.GameScene, _SceneName.UIStart, () => {
-                   console.log('页面内加载测试！');
-               }, 1);
+               Admin._preLoadOpenScene(_SceneName.GameScene, _SceneName.UIStart);
            });
        }
    }
    class UIStartItem extends Admin._Object {
    }
 
-   var _PreLoadSceneBefore;
-   (function (_PreLoadSceneBefore) {
-       _PreLoadSceneBefore._num = 0;
-   })(_PreLoadSceneBefore || (_PreLoadSceneBefore = {}));
    class UIPreLoadSceneBefore extends _PreLoad._PreLoadScene {
        lwgOnAwake() {
-           _PreLoadSceneBefore._num++;
-           console.log(_PreLoadSceneBefore._num);
-           _PreLoad.list_3DPrefab = [
-               "3DPrefab/LayaScene_GameMain/Conventional/CardContainer.lh"
-           ];
+           switch (Admin._preLoadOpenSceneLater.openSceneName) {
+               case _SceneName.GameScene:
+                   _PreLoad.list_3DPrefab = [
+                       "3DPrefab/LayaScene_GameMain/Conventional/CardContainer.lh",
+                   ];
+                   break;
+               case _SceneName.UIDefeated:
+                   break;
+               default:
+                   break;
+           }
        }
    }
 
@@ -5744,7 +5753,7 @@
    GameConfig.startScene = "Scene/UIPreLoad.scene";
    GameConfig.sceneRoot = "";
    GameConfig.debug = false;
-   GameConfig.stat = false;
+   GameConfig.stat = true;
    GameConfig.physicsDebug = false;
    GameConfig.exportSceneToJson = true;
    GameConfig.init();

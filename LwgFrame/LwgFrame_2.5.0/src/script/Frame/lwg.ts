@@ -1236,8 +1236,6 @@ export module lwg {
         //         let num = sp.getChildByName('Num') as Laya.Label;
         //     }));
         // }
-
-
         export enum _EventType {
             _FrontPage_Open = '_FrontPage_Open',
             _FrontPage_Close = '_FrontPage_Close',
@@ -1330,6 +1328,7 @@ export module lwg {
          */
         export function _openScene(openSceneName: string, cloesSceneName?: string, func?: Function, zOder?: number): void {
             Admin._clickLock.switch = true;
+
             Laya.Scene.load('Scene/' + openSceneName + '.json', Laya.Handler.create(this, function (scene: Laya.Scene) {
                 if (_sceneScript[openSceneName]) {
                     if (!scene.getComponent(_sceneScript[openSceneName])) {
@@ -1341,6 +1340,10 @@ export module lwg {
                 scene.width = Laya.stage.width;
                 scene.height = Laya.stage.height;
                 var openf = () => {
+                    if (Tools.node_CheckChildren(Laya.stage, openSceneName)) {
+                        console.log('场景重复出现了！请检查代码');
+                        return;
+                    }
                     if (zOder) {
                         Laya.stage.addChildAt(scene, zOder);
                     } else {
@@ -1552,7 +1555,6 @@ export module lwg {
             bool(): boolean { return this['str'] as boolean; }
             array(): Array<any> { return this['str'] as Array<any>; }
             onAwake(): void {
-
                 this.self = this.owner as Laya.Scene;
                 // 类名
                 if (this.self.name == null) {
@@ -1563,7 +1565,6 @@ export module lwg {
                 }
                 // 组件变为的self属性
                 gameState(this.calssName);
-                this.lwgNodeDec();
                 this.moduleOnAwake();
                 this.lwgOnAwake();
                 this.lwgAdaptive();
@@ -1578,13 +1579,10 @@ export module lwg {
                 this.lwgEventRegister();
                 this.moduleOnEnable();
                 this.lwgOnEnable();
-                EventAdmin.notify(_EventType._FrontPage_Close);
                 this.btnAndlwgOpenAni();
             }
             /**每个模块优先执行的初始化函数，比lwgOnEnable早执行*/
             moduleOnEnable(): void { };
-            /**声明场景里的一些节点*/
-            lwgNodeDec(): void { };
             /**场景中的一些事件，在lwgOnAwake和lwgOnEnable之间执行*/
             lwgEventRegister(): void { };
             /**模块中的事件*/
@@ -1592,7 +1590,13 @@ export module lwg {
 
             /**初始化，在onEnable中执行，重写即可覆盖*/
             lwgOnEnable(): void { }
-
+            onStart(): void {
+                this.moduleOnStart();
+                this.lwgOnStart();
+            }
+            /**初始化完毕后，onUpdate前执行一次，重写覆盖*/
+            lwgOnStart(): void { }
+            moduleOnStart(): void { }
             /**通过openni返回的时间来延时开启点击事件*/
             private btnAndlwgOpenAni(): void {
                 let time = this.lwgOpenAni();
@@ -1606,7 +1610,6 @@ export module lwg {
                     time = _commonOpenAni(this.self);
                 }
             }
-
             /**开场或者离场动画单位时间,默认为100*/
             aniTime: number = 100;
             /**开场或者离场动画单位延迟时间,默认为100*/
@@ -4386,7 +4389,20 @@ export module lwg {
                 }
             }
         }
-
+        /**
+         * 通过某个节点名判断是否是另一个节点的子节点
+         * @param nodeName 节点名称
+        */
+        export function node_CheckChildren(node: Laya.Node, nodeName: string): boolean {
+            let bool = false;
+            for (let index = 0; index < node.numChildren; index++) {
+                const element = node.getChildAt(index);
+                if (element.name == nodeName) {
+                    bool = true;
+                }
+            }
+            return bool;
+        }
         /**
          * 切换显示或隐藏子节点，当输入的名称数组是显示时，其他子节点则是隐藏
          * @param node 节点
@@ -6615,13 +6631,8 @@ export module lwg {
         /**当前加载到哪个分类数组*/
         export let loadOrderIndex: number = 0;
 
-        /**在何处加载的类型*/
-        export enum _whereToLoadType {
-            PreLoad = '_PreLoad',
-            PreLoadSceneBefore = 'PreLoadSceneBefore'
-        }
         /**在何处加载，是初始化加载还是页面中加载*/
-        export let _whereToLoad: string = _whereToLoadType.PreLoad;
+        export let _whereToLoad: string = Admin._SceneName.UIPreLoad;
 
         /**当前进度条进度,起始位0，每加载成功1个资源，则加1,currentProgress.value / sumProgress为进度百分比*/
         export let currentProgress = {
@@ -6686,17 +6697,24 @@ export module lwg {
                     let time = this.lodingComplete();
                     Laya.timer.once(time, this, () => {
                     })
-                    // 通过预加载进入
-                    if (_whereToLoad !== _whereToLoadType.PreLoad) {
+                    // 通过预加载进入页面
+                    this.self.name = _whereToLoad;
+                    Admin._sceneControl[_whereToLoad] = this.self;
+                    console.log(Admin._sceneControl);
+                    if (_whereToLoad !== Admin._SceneName.UIPreLoad) {
                         if (Admin._preLoadOpenSceneLater.openSceneName) {
-                            Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, Admin._preLoadOpenSceneLater.func, Admin._preLoadOpenSceneLater.zOder);
+                            Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, () => {
+                                Admin._preLoadOpenSceneLater.func;
+                                Admin._closeScene(_whereToLoad);
+                            }, Admin._preLoadOpenSceneLater.zOder);
                         }
                     } else {
-                        // _whereToLoad = _whereToLoadType.PreLoadSceneBefore;
                         EventAdmin.notify(_SceneName.UIInit);
                         PalyAudio.playMusic();
+                        Admin._closeScene(_whereToLoad, () => {
+                            _whereToLoad = Admin._SceneName.UIPreLoadSceneBefore;
+                        });
                     }
-                    this.self.close();
                 });
 
                 EventAdmin.register(_EventType.progress, this, () => {
@@ -6707,6 +6725,7 @@ export module lwg {
                     }
                 });
             }
+
             moduleOnEnable(): void {
                 loadOrder = [list_2DPic, list_2DScene, list_2DPrefab, list_3DScene, list_3DPrefab, list_JsonData];
                 for (let index = 0; index < loadOrder.length; index++) {
@@ -6718,6 +6737,9 @@ export module lwg {
                     }
                 }
                 loadOrderIndex = 0;
+            }
+
+            moduleOnStart(): void {
                 let time = this.lwgOpenAni();
                 if (time == null) {
                     time = 0;
@@ -6823,20 +6845,6 @@ export module lwg {
             lodingComplete(): number { return 0 };
         }
     }
-
-    /**开始游戏模块*/
-    export module Start {
-        export class StartScene extends Admin._Scene {
-            moduleOnAwake(): void {
-
-            }
-            moduleOnEnable(): void {
-
-            }
-            moduleEventRegister(): void {
-            }
-        }
-    }
 }
 export default lwg;
 // 全局控制
@@ -6872,8 +6880,6 @@ export let SkinXDScene = lwg.SkinQualified.SkinQualifiedScene;
 export let Skin = lwg.Skin;
 export let SkinScene = lwg.Skin.SkinScene;
 export let Easteregisterg = lwg.Easteregisterg;
-export let Start = lwg.Start;
-export let StartScene = lwg.Start.StartScene;
 export let Victory = lwg.Victory;
 export let VictoryScene = lwg.Victory.VictoryScene;
 export let Defeated = lwg.Defeated;

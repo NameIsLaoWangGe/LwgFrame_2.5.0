@@ -48,6 +48,8 @@ export default class UIPreLoad extends _PreLoad._PreLoadScene {
     }
     lwgOnEnable(): void {
     }
+    lwgOnStart(): void {
+    }
     lwgOpenAni(): number { return 0; }
     lodingPhaseComplete(): void {
         // this.self['Progress'].mask.x = -425 + 425 * Lwg_Loding.currentProgress.value / Lwg_Loding.sumProgress;

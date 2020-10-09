@@ -26,6 +26,10 @@ export module record {
 
         '执行域3' = '循环的执行域可以用new出来的对象{}当做执行域，方便舍弃，如果需要关闭当前界面特效就结束，可以用当前脚本当做执行域，否则关闭脚本和场景，虽然图片不在，但是循环依然在进行，显然增加了性能消耗',
 
+        '执行事件Event' = '事件注册可以注册在onAweak中或者onEnable中，但是执行的时候不要执行在onAweak中或者onEnable中，执行在onStart中，否则可能会报错',
+
+        '节点或场景关闭时机问题' = '节点或场景上如果有脚本，不可以在onAweak中或者onEnable中关闭或者移除，否则会导致此节点没有初始化完成就被关闭了，会报错，如果要立即关闭场景，则在onStart中执行关闭和移除操作',
+
     }
     /**
      * 关于2d物理引擎
@@ -157,7 +161,7 @@ export module record {
     export enum TypeScript {
         " if(0)" = 'false',
         " if(1)" = 'true',
-        '单例模式'='防止当前类出现多个对象，故称之为单例模式，单例过后和模块差不多，是唯一的，如下：'
+        '单例模式' = '防止当前类出现多个对象，故称之为单例模式，单例过后和模块差不多，是唯一的，如下：'
         // export class Img extends Laya.Image {
         //     private static _instance: Img;
         //     public static getInstance(): Img {

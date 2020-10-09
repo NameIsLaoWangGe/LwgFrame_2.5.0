@@ -92,6 +92,8 @@ export module _Start {
         }
         moduleEventRegister(): void {
         }
+        moduleOnStart(): void {
+        }
     }
     /**其他类*/
     export class _Singleton {
@@ -100,13 +102,10 @@ export module _Start {
 }
 export default class UIStart extends _Start._StartScene {
     lwgOnAwake(): void {
-        console.log(Laya.stage);
     }
     lwgBtnClick(): void {
         Click._on(Click._Type.largen, this.btnVar('BtnStart'), this, null, null, () => {
-            Admin._preLoadOpenScene(_SceneName.GameScene, _SceneName.UIStart, () => {
-                console.log('页面内加载测试！');
-            }, 1);
+            Admin._preLoadOpenScene(_SceneName.GameScene, _SceneName.UIStart);
         })
     }
 }
