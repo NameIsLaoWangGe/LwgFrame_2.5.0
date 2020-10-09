@@ -1,0 +1,6 @@
+{
+  "code": "import { Admin, _PreLoad } from \"./lwg\";\r\nexport default class UIPreLoadPageBefore extends _PreLoad._PreLoadScene {\r\n    lwgOnAwake() {\r\n        _PreLoad.list_3DPrefab = [\r\n            \"3DPrefab/LayaScene_GameMain/Conventional/CardContainer.lh\"\r\n        ];\r\n    }\r\n    lodingComplete() {\r\n        console.log(Admin._preLoadOpenSceneLater);\r\n        return 0;\r\n    }\r\n}\r\nexport class UIFrontPageItem extends Admin._Object {\r\n}\r\n",
+  "references": [
+    "D:/Game/project/LwgFrame/Project_2.5.0/LwgFrame/LwgFrame_2.5.0/src/script/Frame/lwg.ts"
+  ]
+}

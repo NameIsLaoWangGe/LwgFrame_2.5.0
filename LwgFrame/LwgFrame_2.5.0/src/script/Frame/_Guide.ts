@@ -1,4 +1,5 @@
-import { Admin, Click, EventAdmin, Tools, Animation2D, TimerAdmin, Start, _SceneName } from "./lwg";
+import { Admin, Animation2D, EventAdmin, TimerAdmin, Tools, _SceneName } from "./lwg";
+
 /**测试模块,每个模块分开，默认导出一个类，这个类是默认挂载的脚本类，如果有多个脚本，
  * 那么在这个默认类中进行添加，或者在其他地方动态添加*/
 export module _Guide {
@@ -23,40 +24,41 @@ export module _Guide {
             Laya.LocalStorage.setItem('_Guide_complete', bol.toString());
         }
     }
-    /**新手引导进行到哪一步了*/
-    // export let _whichStep = {
-    //     get num(): number {
-    //         return Laya.LocalStorage.getItem('_Guide_whichStep') ? Number(Laya.LocalStorage.getItem('_Guide_whichStep')) : 1;
-    //     },
-    //     set num(num0: number) {
-    //         Laya.LocalStorage.setItem('_Guide_whichStep', num0.toString());
-    //     }
-    // };
+    /**分布式新手引导，记录进行到哪一步了*/
+    export let _whichStep = {
+        get num(): number {
+            return Laya.LocalStorage.getItem('_Guide_whichStep') ? Number(Laya.LocalStorage.getItem('_Guide_whichStep')) : 1;
+        },
+        set num(num0: number) {
+            Laya.LocalStorage.setItem('_Guide_whichStep', num0.toString());
+        }
+    };
     /**新手引导进行到哪一步了*/
     export let _whichStepNum: number = 1;
 
     /**事件类型，必须枚举,因为有可能在全局使用,命名必须使用模块名称+事件名称*/
     export enum _EventType {
-        /**执行中*/
+        /**进行当前引导步骤*/
         onStep = '_Guide_onStep',
-        /**完成一步隐藏*/
+        /**完成某一步*/
         stepComplete = '_Guide_stepComplete',
         /**出现*/
         appear = '_Guide_appear',
         /**开始引导*/
         start = '_Guide_start',
-        /**关闭引导界面*/
+        /**完成并关闭引导界面*/
         complete = '_Guide_complete',
     }
+    /**初始化*/
     export function _init(): void {
         // if (_Guide._complete.bool) {
         // } else {
         //     Backpack._haveCardArray.arr = [];
         //     DrawCard._drawCount.num = 0;
         //     DrawCard._residueDraw.num = 2;
-        console.log('新手引导！');
-        Admin._openScene(_SceneName.UIStart, _SceneName.UILoding,()=>{
-            console.log('打开开始界面！')
+        console.log('开始进行新手引导！');
+        Admin._openScene(_SceneName.UIStart, _SceneName.UIPreLoad, () => {
+            console.log('新手引导完成！')
         });
         //     Admin._openScene(Admin._SceneName.UIDrawCard, this.calssName, () => {
         //         let caller = {};
@@ -69,14 +71,11 @@ export module _Guide {
         //     });
         // }
     }
-    /**通用类，进行通用初始化，可在每个游戏中重复使用重复*/
+    /**通用类，进行通用初始化，可在每个游戏中重复使用*/
     export class _GuideScene extends Admin._Scene {
-        // moduleOnAwake(): void {
-        // }
-        // moduleOnEnable(): void {
-        // }
-        // moduleEventregister(): void {
-        // }
+        moduleOnAwake(): void { }
+        moduleOnEnable(): void { }
+        moduleEventregister(): void { }
     }
 }
 export default class UIGuide extends _Guide._GuideScene {

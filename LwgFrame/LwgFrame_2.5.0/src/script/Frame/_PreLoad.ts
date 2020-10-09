@@ -1,5 +1,4 @@
 import { _PreLoad } from "./lwg";
-import _Init from "./_Init";
 
 export default class UIPreLoad extends _PreLoad._PreLoadScene {
     lwgOnAwake(): void {
@@ -54,7 +53,6 @@ export default class UIPreLoad extends _PreLoad._PreLoadScene {
         // this.self['Progress'].mask.x = -425 + 425 * Lwg_Loding.currentProgress.value / Lwg_Loding.sumProgress;
     }
     lodingComplete(): number {
-        _Init._init();
         // this.self['Progress'].mask.x = 0;
         return 200;
     }

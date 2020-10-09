@@ -91,7 +91,7 @@ export module _Example {
         }
         moduleOnEnable(): void {
         }
-        moduleEventReg(): void {
+        moduleEventregister(): void {
         }
     }
     /**其他类*/
@@ -115,7 +115,7 @@ export default class UIExample extends _Example._ExampleScene {
     }
     lwgNodeDec(): void { }
     lwgOnEnable(): void { }
-    lwgEventregister(): void { }
+    lwgEventRegister(): void { }
     lwgAdaptive(): void { }
     lwgOpenAni(): number { return 100; }
     lwgBtnClick(): void { }

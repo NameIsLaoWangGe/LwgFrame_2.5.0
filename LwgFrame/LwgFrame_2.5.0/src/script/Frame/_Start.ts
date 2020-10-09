@@ -60,11 +60,11 @@ export module _Start {
       */
     export let _arrayData = {
         get arr(): Array<string> {
-            return Laya.LocalStorage.getJSON('Example__array') ? JSON.parse(Laya.LocalStorage.getJSON('Example__array')) : [];
+            return Laya.LocalStorage.getJSON('Example_array') ? JSON.parse(Laya.LocalStorage.getJSON('Example_array')) : [];
         },
 
         set arr(array: Array<string>) {
-            Laya.LocalStorage.setJSON('Example__array', JSON.stringify(array));
+            Laya.LocalStorage.setJSON('Example_array', JSON.stringify(array));
         },
     }
 
@@ -89,9 +89,8 @@ export module _Start {
         moduleOnAwake(): void {
         }
         moduleOnEnable(): void {
-            Admin._closeScene(_SceneName.UIInit);
         }
-        moduleEventregister(): void {
+        moduleEventRegister(): void {
         }
     }
     /**其他类*/
@@ -101,10 +100,13 @@ export module _Start {
 }
 export default class UIStart extends _Start._StartScene {
     lwgOnAwake(): void {
+        console.log(Laya.stage);
     }
     lwgBtnClick(): void {
         Click._on(Click._Type.largen, this.btnVar('BtnStart'), this, null, null, () => {
-            Admin._openScene(Admin._SceneName.GameScene, this.calssName);
+            Admin._preLoadOpenScene(_SceneName.GameScene, _SceneName.UIStart, () => {
+                console.log('页面内加载测试！');
+            }, 1);
         })
     }
 }

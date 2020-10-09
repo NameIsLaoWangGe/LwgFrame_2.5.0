@@ -1,5 +1,3 @@
-import UIFrontPage from "./_PreLoadPageBefore";
-
 /**综合模板*/
 export module lwg {
     /**暂停模块，控制游戏的暂停和开启*/
@@ -891,7 +889,7 @@ export module lwg {
             },
         }
 
-        /**玩家玩游戏的次数*/
+        /**玩家登录的次数*/
         export let _loginNumber = {
             get value(): number {
                 return Laya.LocalStorage.getItem('DateAdmin_loginNumber') ? Number(Laya.LocalStorage.getItem('DateAdmin_loginNumber')) : 1;
@@ -1261,7 +1259,7 @@ export module lwg {
         /**有时候我们并不需要离场动画*/
         export let _commonVanishAni: boolean = false;
 
-        /**常用场景的名称，和脚本名称保持一致*/
+        /**常用场景的名称，和脚本默认导出类名保持一致*/
         export enum _SceneName {
             UIPreLoad = 'UIPreLoad',
             UIStart = 'UIStart',
@@ -1298,28 +1296,44 @@ export module lwg {
             UIPropTry = 'UIPropTry',
             UICard = 'UICard',
             UIInit = 'UIInit',
-            UIPreLoadPageBefore = 'UIPreLoadPageBefore',
-        }
-
-        export function _preLoadOpenScene(openName: string, cloesName?: string, func?: Function, zOder?: number) {
-            _openScene(_SceneName.UIPreLoadPageBefore, cloesName, () => {
-                EventAdmin.notify
-            });
+            UIPreLoadSceneBefore = 'UIPreLoadSceneBefore',
         }
 
         /**
+         *预加载后打开场景，预加载内容将在预加载界面按照界面名称执行
+         * @param {string} openSceneName 需要打开的场景名称
+         * @param {string} [cloesSceneName] 需要关闭的场景，默认为null
+         * @param {Function} [func] 完成回调，默认为null
+         * @param {number} [zOder] 指定层级，默认为最上层
+         */
+        export function _preLoadOpenScene(openSceneName: string, cloesSceneName?: string, func?: Function, zOder?: number) {
+            _openScene(_SceneName.UIPreLoadSceneBefore, null, () => {
+                _preLoadOpenSceneLater.openSceneName = openSceneName;
+                _preLoadOpenSceneLater.cloesSceneName = cloesSceneName;
+                _preLoadOpenSceneLater.func = func;
+                _preLoadOpenSceneLater.zOder = zOder;
+            });
+        }
+        /**预加载完毕后，需要打开的场景信息*/
+        export let _preLoadOpenSceneLater = {
+            openSceneName: null,
+            cloesSceneName: null,
+            func: null,
+            zOder: null,
+        }
+        /**
           * 打开场景
-          * @param openName 界面名称
-          * @param cloesName 需要关闭的场景，如果不需要关闭，传入null
-          * @param func 回调函数
+          * @param openSceneName 需要打开的场景名称
+          * @param cloesSceneName 需要关闭的场景，默认为null
+          * @param func 完成回调，默认为null
           * @param zOder 指定层级
          */
-        export function _openScene(openName: string, cloesName?: string, func?: Function, zOder?: number): void {
+        export function _openScene(openSceneName: string, cloesSceneName?: string, func?: Function, zOder?: number): void {
             Admin._clickLock.switch = true;
-            Laya.Scene.load('Scene/' + openName + '.json', Laya.Handler.create(this, function (scene: Laya.Scene) {
-                if (_sceneScript[openName]) {
-                    if (!scene.getComponent(_sceneScript[openName])) {
-                        scene.addComponent(_sceneScript[openName]);
+            Laya.Scene.load('Scene/' + openSceneName + '.json', Laya.Handler.create(this, function (scene: Laya.Scene) {
+                if (_sceneScript[openSceneName]) {
+                    if (!scene.getComponent(_sceneScript[openSceneName])) {
+                        scene.addComponent(_sceneScript[openSceneName]);
                     }
                 } else {
                     console.log('当前场景没有同名脚本！');
@@ -1332,24 +1346,24 @@ export module lwg {
                     } else {
                         Laya.stage.addChild(scene);
                     }
+                    if (func) {
+                        func();
+                    }
                 }
-                scene.name = openName;
-                _sceneControl[openName] = scene;//装入场景容器，此容器内每个场景唯一
+                scene.name = openSceneName;
+                _sceneControl[openSceneName] = scene;//装入场景容器，此容器内每个场景唯一
                 // 背景图自适应并且居中
                 let background = scene.getChildByName('Background') as Laya.Image;
                 if (background) {
                     background.width = Laya.stage.width;
                     background.height = Laya.stage.height;
                 }
-                if (_sceneControl[cloesName]) {
-                    _closeScene(cloesName, openf);
+                if (_sceneControl[cloesSceneName]) {
+                    _closeScene(cloesSceneName, openf);
                 } else {
                     openf();
                 }
-                if (func) {
-                    console.log(Laya.stage);
-                    func();
-                }
+
             }))
         }
 
@@ -1559,8 +1573,8 @@ export module lwg {
             /**每个模块优先执行的页面开始前执行的函数，比lwgOnAwake更早执行*/
             moduleOnAwake(): void { }
             onEnable() {
-                this.moduleEventregister();
-                this.lwgEventregister();
+                this.moduleEventRegister();
+                this.lwgEventRegister();
                 this.moduleOnEnable();
                 this.lwgOnEnable();
                 EventAdmin.notify(_EventType._FrontPage_Close);
@@ -1571,9 +1585,9 @@ export module lwg {
             /**声明场景里的一些节点*/
             lwgNodeDec(): void { };
             /**场景中的一些事件，在lwgOnAwake和lwgOnEnable之间执行*/
-            lwgEventregister(): void { };
+            lwgEventRegister(): void { };
             /**模块中的事件*/
-            moduleEventregister(): void { };
+            moduleEventRegister(): void { };
 
             /**初始化，在onEnable中执行，重写即可覆盖*/
             lwgOnEnable(): void { }
@@ -1682,7 +1696,7 @@ export module lwg {
             lwgOnAwake(): void { }
             onEnable(): void {
                 this.lwgBtnClick();
-                this.lwgEventregister();
+                this.lwgEventRegister();
                 this.lwgOnEnable();
             }
             /**初始化，在onEnable中执行，重写即可覆盖*/
@@ -1690,7 +1704,7 @@ export module lwg {
             /**点击事件注册*/
             lwgBtnClick(): void { }
             /**事件注册*/
-            lwgEventregister(): void { }
+            lwgEventRegister(): void { }
             onUpdate(): void {
                 this.lwgOnUpdate();
             }
@@ -5971,7 +5985,7 @@ export module lwg {
             moduleOnEnable(): void {
                 this.checkList_Create();
             }
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
 
             }
             /**初始化list*/
@@ -6341,7 +6355,7 @@ export module lwg {
             moduleOnEnable(): void {
 
             }
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
 
             }
         }
@@ -6353,7 +6367,7 @@ export module lwg {
             moduleOnAwake(): void {
 
             };
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
 
             };
             moduleOnEnable(): void {
@@ -6367,7 +6381,7 @@ export module lwg {
             moduleOnAwake(): void {
 
             };
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
 
             };
             moduleOnEnable(): void {
@@ -6420,7 +6434,7 @@ export module lwg {
             moduleOnAwake(): void {
 
             };
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
 
             };
             moduleOnEnable(): void {
@@ -6441,7 +6455,7 @@ export module lwg {
             moduleOnAwake(): void {
 
             };
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
 
             };
             moduleOnEnable(): void {
@@ -6456,7 +6470,7 @@ export module lwg {
             moduleOnAwake(): void {
 
             };
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
 
             };
             moduleOnEnable(): void {
@@ -6551,7 +6565,7 @@ export module lwg {
         export class BackpackScene extends Admin._Scene {
             moduleOnAwake(): void {
             };
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
             };
             moduleOnEnable(): void {
             };
@@ -6587,19 +6601,30 @@ export module lwg {
         /**当前加载到哪个分类数组*/
         export let loadOrderIndex: number = 0;
 
+        /**在何处加载的类型*/
+        export enum _whereToLoadType {
+            PreLoad = '_PreLoad',
+            PreLoadSceneBefore = 'PreLoadSceneBefore'
+        }
+        /**在何处加载，是初始化加载还是页面中加载*/
+        export let _whereToLoad: string = _whereToLoadType.PreLoad;
+
         /**当前进度条进度,起始位0，每加载成功1个资源，则加1,currentProgress.value / sumProgress为进度百分比*/
         export let currentProgress = {
             /**获取进度条的数量值，currentProgress.value / sumProgress为进度百分比*/
             get value(): number {
-                return this['p'] ? this['p'] : 0;
+                return this['len'] ? this['len'] : 0;
             },
             /**设置进度条的值*/
             set value(val: number) {
-                this['p'] = val;
-                if (this['p'] >= sumProgress) {
+                this['len'] = val;
+                if (this['len'] >= sumProgress) {
+                    if (sumProgress == 0) {
+                        return;
+                    }
                     console.log('当前进度条进度为:', currentProgress.value / sumProgress);
                     console.log('进度条停止！');
-                    console.log('所有资源加载完成！此时所有资源可通过例如 Laya.loader.getRes("Data/levelsData.json")获取');
+                    console.log('所有资源加载完成！此时所有资源可通过例如 Laya.loader.getRes("url")获取');
                     EventAdmin.notify(_PreLoad._EventType.complete);
                 } else {
                     // 当前进度达到当前长度节点时,去到下一个数组加载
@@ -6607,7 +6632,7 @@ export module lwg {
                     for (let index = 0; index <= loadOrderIndex; index++) {
                         number += loadOrder[index].length;
                     }
-                    if (this['p'] == number) {
+                    if (this['len'] == number) {
                         loadOrderIndex++;
                     }
                     EventAdmin.notify(_PreLoad._EventType.loding);
@@ -6619,7 +6644,6 @@ export module lwg {
             complete = 'complete',
             loding = 'loding',
             progress = 'progress',
-            pageBefore = 'pageBefore',
         }
         /**重制一些加载变量，方便在其他页面重新使用*/
         export function _remakeLode(): void {
@@ -6640,21 +6664,30 @@ export module lwg {
 
         export class _PreLoadScene extends Admin._Scene {
             moduleOnAwake(): void {
-                this.self.name = 'UILoding';
+                _PreLoad._remakeLode();
+                this.self.name = _SceneName.UIPreLoad;
                 Admin._sceneControl[Admin._SceneName.UIPreLoad] = this.self;
-                DateAdmin._loginNumber.value++;
-                console.log('玩家登陆的天数为：', DateAdmin._loginDate.value.length, '天');
             }
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
                 EventAdmin.register(_EventType.loding, this, () => { this.lodingRule() });
 
                 EventAdmin.register(_EventType.complete, this, () => {
                     let time = this.lodingComplete();
-                    PalyAudio.playMusic();
-                    Laya.timer.once(time, this, () => { })
+                    Laya.timer.once(time, this, () => {
+                    })
+                    // 通过预加载进入
+                    if (_whereToLoad !== _whereToLoadType.PreLoad) {
+                        if (Admin._preLoadOpenSceneLater.openSceneName) {
+                            Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, Admin._preLoadOpenSceneLater.func, Admin._preLoadOpenSceneLater.zOder);
+                        }
+                    } else {
+                        _whereToLoad = _whereToLoadType.PreLoadSceneBefore;
+                        EventAdmin.notify(_SceneName.UIInit);
+                        PalyAudio.playMusic();
+                    }
                 });
 
-                EventAdmin.register(_EventType.progress, this, (skip) => {
+                EventAdmin.register(_EventType.progress, this, () => {
                     currentProgress.value++;
                     if (currentProgress.value < sumProgress) {
                         console.log('当前进度条进度为:', currentProgress.value / sumProgress);
@@ -6686,6 +6719,7 @@ export module lwg {
             private lodingRule(): void {
                 if (loadOrder.length <= 0) {
                     console.log('没有加载项');
+                    EventAdmin.notify(_PreLoad._EventType.complete);
                     return;
                 }
                 // 已经加载过的分类数组的长度
@@ -6787,7 +6821,7 @@ export module lwg {
             moduleOnEnable(): void {
 
             }
-            moduleEventregister(): void {
+            moduleEventRegister(): void {
             }
         }
     }

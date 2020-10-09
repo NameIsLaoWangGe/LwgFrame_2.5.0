@@ -942,14 +942,29 @@
                _SceneName["UIPropTry"] = "UIPropTry";
                _SceneName["UICard"] = "UICard";
                _SceneName["UIInit"] = "UIInit";
-               _SceneName["UIPreLoadPageBefore"] = "UIPreLoadPageBefore";
+               _SceneName["UIPreLoadSceneBefore"] = "UIPreLoadSceneBefore";
            })(_SceneName = Admin._SceneName || (Admin._SceneName = {}));
-           function _openScene(openName, cloesName, func, zOder) {
+           function _preLoadOpenScene(openSceneName, cloesSceneName, func, zOder) {
+               _openScene(_SceneName.UIPreLoadSceneBefore, null, () => {
+                   Admin._preLoadOpenSceneLater.openSceneName = openSceneName;
+                   Admin._preLoadOpenSceneLater.cloesSceneName = cloesSceneName;
+                   Admin._preLoadOpenSceneLater.func = func;
+                   Admin._preLoadOpenSceneLater.zOder = zOder;
+               });
+           }
+           Admin._preLoadOpenScene = _preLoadOpenScene;
+           Admin._preLoadOpenSceneLater = {
+               openSceneName: null,
+               cloesSceneName: null,
+               func: null,
+               zOder: null,
+           };
+           function _openScene(openSceneName, cloesSceneName, func, zOder) {
                Admin._clickLock.switch = true;
-               Laya.Scene.load('Scene/' + openName + '.json', Laya.Handler.create(this, function (scene) {
-                   if (Admin._sceneScript[openName]) {
-                       if (!scene.getComponent(Admin._sceneScript[openName])) {
-                           scene.addComponent(Admin._sceneScript[openName]);
+               Laya.Scene.load('Scene/' + openSceneName + '.json', Laya.Handler.create(this, function (scene) {
+                   if (Admin._sceneScript[openSceneName]) {
+                       if (!scene.getComponent(Admin._sceneScript[openSceneName])) {
+                           scene.addComponent(Admin._sceneScript[openSceneName]);
                        }
                    }
                    else {
@@ -964,23 +979,22 @@
                        else {
                            Laya.stage.addChild(scene);
                        }
+                       if (func) {
+                           func();
+                       }
                    };
-                   scene.name = openName;
-                   Admin._sceneControl[openName] = scene;
+                   scene.name = openSceneName;
+                   Admin._sceneControl[openSceneName] = scene;
                    let background = scene.getChildByName('Background');
                    if (background) {
                        background.width = Laya.stage.width;
                        background.height = Laya.stage.height;
                    }
-                   if (Admin._sceneControl[cloesName]) {
-                       _closeScene(cloesName, openf);
+                   if (Admin._sceneControl[cloesSceneName]) {
+                       _closeScene(cloesSceneName, openf);
                    }
                    else {
                        openf();
-                   }
-                   if (func) {
-                       console.log(Laya.stage);
-                       func();
                    }
                }));
            }
@@ -1167,8 +1181,8 @@
                ;
                moduleOnAwake() { }
                onEnable() {
-                   this.moduleEventregister();
-                   this.lwgEventregister();
+                   this.moduleEventRegister();
+                   this.lwgEventRegister();
                    this.moduleOnEnable();
                    this.lwgOnEnable();
                    EventAdmin.notify(_EventType._FrontPage_Close);
@@ -1178,9 +1192,9 @@
                ;
                lwgNodeDec() { }
                ;
-               lwgEventregister() { }
+               lwgEventRegister() { }
                ;
-               moduleEventregister() { }
+               moduleEventRegister() { }
                ;
                lwgOnEnable() { }
                btnAndlwgOpenAni() {
@@ -1260,12 +1274,12 @@
                lwgOnAwake() { }
                onEnable() {
                    this.lwgBtnClick();
-                   this.lwgEventregister();
+                   this.lwgEventRegister();
                    this.lwgOnEnable();
                }
                lwgOnEnable() { }
                lwgBtnClick() { }
-               lwgEventregister() { }
+               lwgEventRegister() { }
                onUpdate() {
                    this.lwgOnUpdate();
                }
@@ -4292,7 +4306,7 @@
                moduleOnEnable() {
                    this.checkList_Create();
                }
-               moduleEventregister() {
+               moduleEventRegister() {
                }
                checkList_Create() {
                    CheckIn._checkList.selectEnable = true;
@@ -4565,7 +4579,7 @@
                }
                moduleOnEnable() {
                }
-               moduleEventregister() {
+               moduleEventRegister() {
                }
            }
            Easteregisterg.EasteregistergScene = EasteregistergScene;
@@ -4576,7 +4590,7 @@
                moduleOnAwake() {
                }
                ;
-               moduleEventregister() {
+               moduleEventRegister() {
                }
                ;
                moduleOnEnable() {
@@ -4591,7 +4605,7 @@
                moduleOnAwake() {
                }
                ;
-               moduleEventregister() {
+               moduleEventRegister() {
                }
                ;
                moduleOnEnable() {
@@ -4630,7 +4644,7 @@
                moduleOnAwake() {
                }
                ;
-               moduleEventregister() {
+               moduleEventRegister() {
                }
                ;
                moduleOnEnable() {
@@ -4646,7 +4660,7 @@
                moduleOnAwake() {
                }
                ;
-               moduleEventregister() {
+               moduleEventRegister() {
                }
                ;
                moduleOnEnable() {
@@ -4661,7 +4675,7 @@
                moduleOnAwake() {
                }
                ;
-               moduleEventregister() {
+               moduleEventRegister() {
                }
                ;
                moduleOnEnable() {
@@ -4731,7 +4745,7 @@
                moduleOnAwake() {
                }
                ;
-               moduleEventregister() {
+               moduleEventRegister() {
                }
                ;
                moduleOnEnable() {
@@ -4752,52 +4766,87 @@
            _PreLoad.list_2DPrefab = [];
            _PreLoad.list_JsonData = [];
            _PreLoad.sumProgress = 0;
+           _PreLoad.loadOrder = [];
+           _PreLoad.loadOrderIndex = 0;
+           let _whereToLoadType;
+           (function (_whereToLoadType) {
+               _whereToLoadType["PreLoad"] = "_PreLoad";
+               _whereToLoadType["PreLoadSceneBefore"] = "PreLoadSceneBefore";
+           })(_whereToLoadType = _PreLoad._whereToLoadType || (_PreLoad._whereToLoadType = {}));
+           _PreLoad._whereToLoad = _whereToLoadType.PreLoad;
            _PreLoad.currentProgress = {
-               p: 0,
                get value() {
-                   return this.p;
+                   return this['len'] ? this['len'] : 0;
                },
-               set value(v) {
-                   this.p = v;
-                   if (this.p >= _PreLoad.sumProgress) {
+               set value(val) {
+                   this['len'] = val;
+                   if (this['len'] >= _PreLoad.sumProgress) {
+                       if (_PreLoad.sumProgress == 0) {
+                           return;
+                       }
                        console.log('当前进度条进度为:', _PreLoad.currentProgress.value / _PreLoad.sumProgress);
                        console.log('进度条停止！');
-                       console.log('所有资源加载完成！此时所有资源可通过例如 Laya.loader.getRes("Data/levelsData.json")获取');
-                       EventAdmin.notify(_PreLoad.LodingType.complete);
+                       console.log('所有资源加载完成！此时所有资源可通过例如 Laya.loader.getRes("url")获取');
+                       EventAdmin.notify(_PreLoad._EventType.complete);
                    }
                    else {
                        let number = 0;
                        for (let index = 0; index <= _PreLoad.loadOrderIndex; index++) {
                            number += _PreLoad.loadOrder[index].length;
                        }
-                       if (this.p === number) {
+                       if (this['len'] == number) {
                            _PreLoad.loadOrderIndex++;
                        }
-                       EventAdmin.notify(_PreLoad.LodingType.loding);
+                       EventAdmin.notify(_PreLoad._EventType.loding);
                    }
                },
            };
-           let LodingType;
-           (function (LodingType) {
-               LodingType["complete"] = "complete";
-               LodingType["loding"] = "loding";
-               LodingType["progress"] = "progress";
-           })(LodingType = _PreLoad.LodingType || (_PreLoad.LodingType = {}));
+           let _EventType;
+           (function (_EventType) {
+               _EventType["complete"] = "complete";
+               _EventType["loding"] = "loding";
+               _EventType["progress"] = "progress";
+           })(_EventType = _PreLoad._EventType || (_PreLoad._EventType = {}));
+           function _remakeLode() {
+               _PreLoad.list_3DScene = [];
+               _PreLoad.list_3DPrefab = [];
+               _PreLoad.list_3DMesh = [];
+               _PreLoad.lolist_3DBaseMaterial = [];
+               _PreLoad.list_3DTexture2D = [];
+               _PreLoad.list_2DPic = [];
+               _PreLoad.list_2DScene = [];
+               _PreLoad.list_2DPrefab = [];
+               _PreLoad.list_JsonData = [];
+               _PreLoad.sumProgress = 0;
+               _PreLoad.loadOrder = [];
+               _PreLoad.loadOrderIndex = 0;
+               _PreLoad.currentProgress.value = 0;
+           }
+           _PreLoad._remakeLode = _remakeLode;
            class _PreLoadScene extends Admin._Scene {
                moduleOnAwake() {
-                   this.self.name = 'UILoding';
+                   _PreLoad._remakeLode();
+                   this.self.name = _SceneName.UIPreLoad;
                    Admin._sceneControl[Admin._SceneName.UIPreLoad] = this.self;
-                   DateAdmin._loginNumber.value++;
-                   console.log('玩家登陆的天数为：', DateAdmin._loginDate.value.length, '天');
                }
-               moduleEventregister() {
-                   EventAdmin.register(LodingType.loding, this, () => { this.lodingRule(); });
-                   EventAdmin.register(LodingType.complete, this, () => {
+               moduleEventRegister() {
+                   EventAdmin.register(_EventType.loding, this, () => { this.lodingRule(); });
+                   EventAdmin.register(_EventType.complete, this, () => {
                        let time = this.lodingComplete();
-                       PalyAudio.playMusic();
-                       Laya.timer.once(time, this, () => { });
+                       Laya.timer.once(time, this, () => {
+                       });
+                       if (_PreLoad._whereToLoad !== _whereToLoadType.PreLoad) {
+                           if (Admin._preLoadOpenSceneLater.openSceneName) {
+                               Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, Admin._preLoadOpenSceneLater.func, Admin._preLoadOpenSceneLater.zOder);
+                           }
+                       }
+                       else {
+                           _PreLoad._whereToLoad = _whereToLoadType.PreLoadSceneBefore;
+                           EventAdmin.notify(_SceneName.UIInit);
+                           PalyAudio.playMusic();
+                       }
                    });
-                   EventAdmin.register(LodingType.progress, this, (skip) => {
+                   EventAdmin.register(_EventType.progress, this, () => {
                        _PreLoad.currentProgress.value++;
                        if (_PreLoad.currentProgress.value < _PreLoad.sumProgress) {
                            console.log('当前进度条进度为:', _PreLoad.currentProgress.value / _PreLoad.sumProgress);
@@ -4820,12 +4869,13 @@
                        time = 0;
                    }
                    Laya.timer.once(time, this, () => {
-                       EventAdmin.notify(_PreLoad.LodingType.loding);
+                       EventAdmin.notify(_PreLoad._EventType.loding);
                    });
                }
                lodingRule() {
                    if (_PreLoad.loadOrder.length <= 0) {
                        console.log('没有加载项');
+                       EventAdmin.notify(_PreLoad._EventType.complete);
                        return;
                    }
                    let alreadyPro = 0;
@@ -4842,7 +4892,7 @@
                                else {
                                    console.log('2D图片' + _PreLoad.list_2DPic[index] + '加载完成！', '数组下标为：', index);
                                }
-                               EventAdmin.notify(LodingType.progress);
+                               EventAdmin.notify(_EventType.progress);
                            }));
                            break;
                        case _PreLoad.list_2DScene:
@@ -4853,7 +4903,7 @@
                                else {
                                    console.log('2D场景' + _PreLoad.list_2DScene[index] + '加载完成！', '数组下标为：', index);
                                }
-                               EventAdmin.notify(LodingType.progress);
+                               EventAdmin.notify(_EventType.progress);
                            }), null, Laya.Loader.JSON);
                            break;
                        case _PreLoad.list_2DPrefab:
@@ -4864,7 +4914,7 @@
                                else {
                                    console.log('2D预制体' + _PreLoad.list_2DPrefab[index] + '加载完成！', '数组下标为：', index);
                                }
-                               EventAdmin.notify(LodingType.progress);
+                               EventAdmin.notify(_EventType.progress);
                            }), null, Laya.Loader.JSON);
                            break;
                        case _PreLoad.list_3DScene:
@@ -4875,7 +4925,7 @@
                                else {
                                    console.log('3D场景' + _PreLoad.list_3DScene[index] + '加载完成！', '数组下标为：', index);
                                }
-                               EventAdmin.notify(LodingType.progress);
+                               EventAdmin.notify(_EventType.progress);
                            }));
                            break;
                        case _PreLoad.list_3DPrefab:
@@ -4886,7 +4936,7 @@
                                else {
                                    console.log('3D预制体' + _PreLoad.list_3DPrefab[index] + '加载完成！', '数组下标为：', index);
                                }
-                               EventAdmin.notify(LodingType.progress);
+                               EventAdmin.notify(_EventType.progress);
                            }));
                            break;
                        case _PreLoad.list_JsonData:
@@ -4897,7 +4947,7 @@
                                else {
                                    console.log('数据表' + _PreLoad.list_JsonData[index] + '加载完成！', '数组下标为：', index);
                                }
-                               EventAdmin.notify(LodingType.progress);
+                               EventAdmin.notify(_EventType.progress);
                            }), null, Laya.Loader.JSON);
                            break;
                        default:
@@ -4917,7 +4967,7 @@
                }
                moduleOnEnable() {
                }
-               moduleEventregister() {
+               moduleEventRegister() {
                }
            }
            Start.StartScene = StartScene;
@@ -4969,6 +5019,32 @@
    let PropTryScene = lwg.PropTry.PropTryScene;
    let Backpack = lwg.Backpack;
    let BackpackScene = lwg.Backpack.BackpackScene;
+
+   class UIPreLoad extends _PreLoad._PreLoadScene {
+       lwgOnAwake() {
+           _PreLoad.list_2DPic = [];
+           _PreLoad.list_2DScene = [
+               "Scene/UIStart.json",
+               "Scene/UIFrontPage.json",
+           ];
+           _PreLoad.list_2DPrefab = [];
+           _PreLoad.list_3DScene = [
+               "3DScene/LayaScene_GameMain/Conventional/GameMain.ls"
+           ];
+           _PreLoad.list_3DPrefab = [];
+           _PreLoad.list_JsonData = [];
+       }
+       lwgAdaptive() {
+       }
+       lwgOnEnable() {
+       }
+       lwgOpenAni() { return 0; }
+       lodingPhaseComplete() {
+       }
+       lodingComplete() {
+           return 200;
+       }
+   }
 
    var _Game;
    (function (_Game) {
@@ -5091,6 +5167,14 @@
                Laya.LocalStorage.setItem('_Guide_complete', bol.toString());
            }
        };
+       _Guide._whichStep = {
+           get num() {
+               return Laya.LocalStorage.getItem('_Guide_whichStep') ? Number(Laya.LocalStorage.getItem('_Guide_whichStep')) : 1;
+           },
+           set num(num0) {
+               Laya.LocalStorage.setItem('_Guide_whichStep', num0.toString());
+           }
+       };
        _Guide._whichStepNum = 1;
        let _EventType;
        (function (_EventType) {
@@ -5101,13 +5185,16 @@
            _EventType["complete"] = "_Guide_complete";
        })(_EventType = _Guide._EventType || (_Guide._EventType = {}));
        function _init() {
-           console.log('新手引导！');
-           Admin._openScene(_SceneName.UIStart, _SceneName.UILoding, () => {
-               console.log('打开开始界面！');
+           console.log('开始进行新手引导！');
+           Admin._openScene(_SceneName.UIStart, _SceneName.UIPreLoad, () => {
+               console.log('新手引导完成！');
            });
        }
        _Guide._init = _init;
        class _GuideScene extends Admin._Scene {
+           moduleOnAwake() { }
+           moduleOnEnable() { }
+           moduleEventregister() { }
        }
        _Guide._GuideScene = _GuideScene;
    })(_Guide || (_Guide = {}));
@@ -5470,10 +5557,10 @@
        };
        _Start._arrayData = {
            get arr() {
-               return Laya.LocalStorage.getJSON('Example__array') ? JSON.parse(Laya.LocalStorage.getJSON('Example__array')) : [];
+               return Laya.LocalStorage.getJSON('Example_array') ? JSON.parse(Laya.LocalStorage.getJSON('Example_array')) : [];
            },
            set arr(array) {
-               Laya.LocalStorage.setJSON('Example__array', JSON.stringify(array));
+               Laya.LocalStorage.setJSON('Example_array', JSON.stringify(array));
            },
        };
        let _EventType;
@@ -5493,9 +5580,8 @@
            moduleOnAwake() {
            }
            moduleOnEnable() {
-               Admin._closeScene(_SceneName.UIInit);
            }
-           moduleEventregister() {
+           moduleEventRegister() {
            }
        }
        _Start._StartScene = _StartScene;
@@ -5505,90 +5591,57 @@
    })(_Start || (_Start = {}));
    class UIStart extends _Start._StartScene {
        lwgOnAwake() {
+           console.log(Laya.stage);
        }
        lwgBtnClick() {
            Click._on(Click._Type.largen, this.btnVar('BtnStart'), this, null, null, () => {
-               Admin._openScene(Admin._SceneName.GameScene, this.calssName);
+               Admin._preLoadOpenScene(_SceneName.GameScene, _SceneName.UIStart, () => {
+                   console.log('页面内加载测试！');
+               }, 1);
            });
        }
    }
    class UIStartItem extends Admin._Object {
    }
 
-   var _PreLoadPageBefore;
-   (function (_PreLoadPageBefore) {
-       class _PreLoadPageBeforeScene extends Admin._Scene {
-       }
-       _PreLoadPageBefore._PreLoadPageBeforeScene = _PreLoadPageBeforeScene;
-   })(_PreLoadPageBefore || (_PreLoadPageBefore = {}));
-   class UIPreLoadPageBefore extends _PreLoad._PreLoadScene {
-       constructor() {
-           super();
-       }
-       lodingComplete() {
-           return 0;
-       }
-   }
-   class UIFrontPageItem extends Admin._Object {
-   }
-
-   var _Init;
-   (function (_Init) {
-       function _init() {
-           (function admin() {
-               Admin._sceneScript = {
-                   UIStart: UIStart,
-                   GameScene: GameScene,
-                   UIGuide: UIGuide,
-                   UITask: UITask,
-                   UIFrontPage: UIPreLoadPageBefore,
-               };
-               Admin._evaluating = false;
-               Admin._platform = Admin._platformTpye.Bytedance;
-           }());
-           (function d2() {
-           }());
-           (function d3() {
-           }());
-           (function other() {
-           }());
-           (function module() {
-               _Start._init();
-               _Task._init();
-               _Guide._init();
-           }());
-           console.log('初始化完毕！');
-       }
-       _Init._init = _init;
-   })(_Init || (_Init = {}));
-   var _Init$1 = _Init;
-
-   class UIPreLoad extends _PreLoad._PreLoadScene {
+   class UIPreLoadSceneBefore extends _PreLoad._PreLoadScene {
        lwgOnAwake() {
-           _PreLoad.list_2DPic = [];
-           _PreLoad.list_2DScene = [
-               "Scene/UIStart.json",
-               "Scene/UIFrontPage.json",
-           ];
-           _PreLoad.list_2DPrefab = [];
-           _PreLoad.list_3DScene = [
-               "3DScene/LayaScene_GameMain/Conventional/GameMain.ls"
-           ];
            _PreLoad.list_3DPrefab = [
                "3DPrefab/LayaScene_GameMain/Conventional/CardContainer.lh"
            ];
-           _PreLoad.list_JsonData = [];
        }
-       lwgAdaptive() {
-       }
-       lwgOnEnable() {
-       }
-       lwgOpenAni() { return 0; }
-       lodingPhaseComplete() {
-       }
-       lodingComplete() {
-           _Init$1._init();
-           return 200;
+   }
+
+   class UIInit extends Admin._Scene {
+       lwgEventRegister() {
+           EventAdmin.register(_SceneName.UIInit, this, () => {
+               (function admin() {
+                   Admin._sceneScript = {
+                       UIStart: UIStart,
+                       GameScene: GameScene,
+                       UIGuide: UIGuide,
+                       UITask: UITask,
+                       UIPreLoadSceneBefore: UIPreLoadSceneBefore,
+                   };
+                   Admin._evaluating = false;
+                   Admin._platform = Admin._platformTpye.Bytedance;
+               }());
+               (function date() {
+                   DateAdmin._loginNumber.value++;
+               });
+               (function d2() {
+               }());
+               (function d3() {
+               }());
+               (function other() {
+               }());
+               (function module() {
+                   _Start._init();
+                   _Task._init();
+                   _Guide._init();
+               }());
+               console.log('初始化完毕！');
+           });
        }
    }
 
@@ -5664,6 +5717,7 @@
        static init() {
            var reg = Laya.ClassUtils.regClass;
            reg("script/Frame/_PreLoad.ts", UIPreLoad);
+           reg("script/Frame/_Init.ts", UIInit);
            reg("script/GameUI.ts", GameUI);
        }
    }
