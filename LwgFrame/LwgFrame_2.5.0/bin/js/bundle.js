@@ -4785,8 +4785,8 @@
            _PreLoad.list_3DScene = [];
            _PreLoad.list_3DPrefab = [];
            _PreLoad.list_3DMesh = [];
-           _PreLoad.lolist_3DBaseMaterial = [];
-           _PreLoad.list_3DTexture2D = [];
+           _PreLoad.list_Material = [];
+           _PreLoad.list_Texture2D = [];
            _PreLoad.list_2DPic = [];
            _PreLoad.list_2DScene = [];
            _PreLoad.list_2DPrefab = [];
@@ -4832,8 +4832,8 @@
                _PreLoad.list_3DScene = [];
                _PreLoad.list_3DPrefab = [];
                _PreLoad.list_3DMesh = [];
-               _PreLoad.lolist_3DBaseMaterial = [];
-               _PreLoad.list_3DTexture2D = [];
+               _PreLoad.list_Material = [];
+               _PreLoad.list_Texture2D = [];
                _PreLoad.list_2DPic = [];
                _PreLoad.list_2DScene = [];
                _PreLoad.list_2DPrefab = [];
@@ -4850,13 +4850,12 @@
                }
                moduleEventRegister() {
                    EventAdmin.register(_EventType.loding, this, () => { this.lodingRule(); });
-                   EventAdmin.registerOnce(_EventType.complete, this, () => {
+                   EventAdmin.register(_EventType.complete, this, () => {
                        let time = this.lodingComplete();
                        Laya.timer.once(time, this, () => {
                        });
                        this.self.name = _PreLoad._whereToLoad;
                        Admin._sceneControl[_PreLoad._whereToLoad] = this.self;
-                       console.log(Admin._sceneControl);
                        if (_PreLoad._whereToLoad !== Admin._SceneName.UIPreLoad) {
                            if (Admin._preLoadOpenSceneLater.openSceneName) {
                                Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, () => {
@@ -4964,6 +4963,39 @@
                                }
                                else {
                                    console.log('3D预制体' + _PreLoad.list_3DPrefab[index] + '加载完成！', '数组下标为：', index);
+                               }
+                               EventAdmin.notify(_EventType.progress);
+                           }));
+                           break;
+                       case _PreLoad.list_3DMesh:
+                           Laya.Mesh.load(_PreLoad.list_3DMesh[index], Laya.Handler.create(this, (any) => {
+                               if (any == null) {
+                                   console.log('XXXXXXXXXXX3D网格' + _PreLoad.list_3DMesh[index] + '加载失败！不会停止加载进程！', '数组下标为：', index, 'XXXXXXXXXXX');
+                               }
+                               else {
+                                   console.log('3D网格' + _PreLoad.list_3DMesh[index] + '加载完成！', '数组下标为：', index);
+                               }
+                               EventAdmin.notify(_EventType.progress);
+                           }));
+                           break;
+                       case _PreLoad.list_Texture2D:
+                           Laya.Texture2D.load(_PreLoad.list_Texture2D[index], Laya.Handler.create(this, (any) => {
+                               if (any == null) {
+                                   console.log('XXXXXXXXXXX2D纹理' + _PreLoad.list_Texture2D[index] + '加载失败！不会停止加载进程！', '数组下标为：', index, 'XXXXXXXXXXX');
+                               }
+                               else {
+                                   console.log('2D纹理' + _PreLoad.list_Texture2D[index] + '加载完成！', '数组下标为：', index);
+                               }
+                               EventAdmin.notify(_EventType.progress);
+                           }));
+                           break;
+                       case _PreLoad.list_Material:
+                           Laya.Material.load(_PreLoad.list_Material[index], Laya.Handler.create(this, (any) => {
+                               if (any == null) {
+                                   console.log('XXXXXXXXXXX材质' + _PreLoad.list_Material[index] + '加载失败！不会停止加载进程！', '数组下标为：', index, 'XXXXXXXXXXX');
+                               }
+                               else {
+                                   console.log('材质' + _PreLoad.list_Material[index] + '加载完成！', '数组下标为：', index);
                                }
                                EventAdmin.notify(_EventType.progress);
                            }));

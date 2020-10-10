@@ -93,7 +93,7 @@ export module lwg {
         }
 
         /**
-         * 动态创建，第一次创建比较卡，需要优化
+         * 动态创建，第一次创建比较卡，是因为第一次绘制，而不是加载，需要优化
          * @param describe 类型，也就是提示文字类型
          */
         export function createHint_Middle(describe: number): void {
@@ -1341,7 +1341,7 @@ export module lwg {
                 scene.height = Laya.stage.height;
                 var openf = () => {
                     if (Tools.node_CheckChildren(Laya.stage, openSceneName)) {
-                        console.log('场景重复出现了！请检查代码');
+                        console.log('场景重复出现！请检查代码');
                         return;
                     }
                     if (zOder) {
@@ -1366,7 +1366,6 @@ export module lwg {
                 } else {
                     openf();
                 }
-
             }))
         }
 
@@ -6610,9 +6609,9 @@ export module lwg {
         /**模型网格详见：  https://ldc2.layabox.com/doc/?nav=zh-ts-4-3-1   */
         export let list_3DMesh: Array<any> = [];
         /**材质详见：  https://ldc2.layabox.com/doc/?nav=zh-ts-4-3-1   */
-        export let lolist_3DBaseMaterial: Array<any> = [];
+        export let list_Material: Array<any> = [];
         /**纹理加载详见：  https://ldc2.layabox.com/doc/?nav=zh-ts-4-3-1   */
-        export let list_3DTexture2D: Array<any> = [];
+        export let list_Texture2D: Array<any> = [];
 
         /**需要加载的图片资源列表,一般是界面的图片*/
         export let list_2DPic: Array<any> = [];
@@ -6675,8 +6674,8 @@ export module lwg {
             list_3DScene = [];
             list_3DPrefab = [];
             list_3DMesh = [];
-            lolist_3DBaseMaterial = [];
-            list_3DTexture2D = [];
+            list_Material = [];
+            list_Texture2D = [];
             list_2DPic = [];
             list_2DScene = [];
             list_2DPrefab = [];
@@ -6693,14 +6692,12 @@ export module lwg {
             }
             moduleEventRegister(): void {
                 EventAdmin.register(_EventType.loding, this, () => { this.lodingRule() });
-                EventAdmin.registerOnce(_EventType.complete, this, () => {
+                EventAdmin.register(_EventType.complete, this, () => {
                     let time = this.lodingComplete();
-                    Laya.timer.once(time, this, () => {
-                    })
+                    Laya.timer.once(time, this, () => { })
                     // 通过预加载进入页面
                     this.self.name = _whereToLoad;
                     Admin._sceneControl[_whereToLoad] = this.self;
-                    console.log(Admin._sceneControl);
                     if (_whereToLoad !== Admin._SceneName.UIPreLoad) {
                         if (Admin._preLoadOpenSceneLater.openSceneName) {
                             Admin._openScene(Admin._preLoadOpenSceneLater.openSceneName, Admin._preLoadOpenSceneLater.cloesSceneName, () => {
@@ -6821,6 +6818,37 @@ export module lwg {
                             }
                             EventAdmin.notify(_EventType.progress);
 
+                        }));
+                        break;
+                    case list_3DMesh:
+                        Laya.Mesh.load(list_3DMesh[index], Laya.Handler.create(this, (any) => {
+                            if (any == null) {
+                                console.log('XXXXXXXXXXX3D网格' + list_3DMesh[index] + '加载失败！不会停止加载进程！', '数组下标为：', index, 'XXXXXXXXXXX');
+                            } else {
+                                console.log('3D网格' + list_3DMesh[index] + '加载完成！', '数组下标为：', index);
+                            }
+                            EventAdmin.notify(_EventType.progress);
+
+                        }));
+                        break;
+                    case list_Texture2D:
+                        Laya.Texture2D.load(list_Texture2D[index], Laya.Handler.create(this, (any) => {
+                            if (any == null) {
+                                console.log('XXXXXXXXXXX2D纹理' + list_Texture2D[index] + '加载失败！不会停止加载进程！', '数组下标为：', index, 'XXXXXXXXXXX');
+                            } else {
+                                console.log('2D纹理' + list_Texture2D[index] + '加载完成！', '数组下标为：', index);
+                            }
+                            EventAdmin.notify(_EventType.progress);
+                        }));
+                        break;
+                    case list_Material:
+                        Laya.Material.load(list_Material[index], Laya.Handler.create(this, (any) => {
+                            if (any == null) {
+                                console.log('XXXXXXXXXXX材质' + list_Material[index] + '加载失败！不会停止加载进程！', '数组下标为：', index, 'XXXXXXXXXXX');
+                            } else {
+                                console.log('材质' + list_Material[index] + '加载完成！', '数组下标为：', index);
+                            }
+                            EventAdmin.notify(_EventType.progress);
                         }));
                         break;
                     case list_JsonData:
