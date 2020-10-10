@@ -207,6 +207,14 @@ export module record {
     }
 
     export enum VSCode {
-        '.点出的引用打开注释' = '例如Effect.选中其中一个，最右边有个尖头打开就是注释'
+        '.点出的引用如何打开注释' = '例如Effect.选中其中一个，点击最右边有个尖头‘>’就可以打开注释',
+    }
+
+    /**发布和调试*/
+    export enum Issue {
+        '发布OPPO和VIVO包' = '如果出现一些类似于npm、cmd、node-modoul、VIVO-minigame等问题，很有可能是nodejs、npm出现问题，卸载安装nodejs，有时候也有必要安装一下VIVO-minigame，网上搜索‘VIVO-minigame’即可通过npm安装',
+
+        '发布OPPO和VIVO包调试' = '网上教程可以用eclipse连接手机进行调试，如果控制面板中的安卓连接出现问题，可能是没有驱动，可以通过豌豆荚app，他会自动安装连接的驱动',
+
     }
 }

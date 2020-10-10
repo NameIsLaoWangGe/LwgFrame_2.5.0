@@ -6722,7 +6722,6 @@ export module lwg {
                     }
                 });
             }
-
             moduleOnEnable(): void {
                 loadOrder = [list_2DPic, list_2DScene, list_2DPrefab, list_3DScene, list_3DPrefab, list_JsonData];
                 for (let index = 0; index < loadOrder.length; index++) {
@@ -6873,6 +6872,86 @@ export module lwg {
             lodingComplete(): number { return 0 };
         }
     }
+    /**资源准备模块，拉去资源，分包等*/
+    export module _ResPrepare {
+        export let _pkgStep: number;
+        export let _pkgInfo = [];
+        export enum EventType {
+            start = '_ResPrepare_start',
+            nextStep = '_ResPrepare_nextStep',
+            compelet = '_ResPrepare_compelet',
+        }
+        /**开始*/
+        export function _init(_completeFunc?) {
+            this.completeFunc = _completeFunc;
+            this.loadPkg_wx();
+            this.loadPkg_VIVO();
+            this.completeFunc();
+        }
+        /**OV*/
+        export function loadPkg_VIVO() {
+            if (this._pkgStep == this.pkgInfo.length) {
+                if (this.completeFunc) {
+                    this.completeFunc();
+                }
+            } else {
+                let info = this.pkgInfo[this._pkgStep];
+                let name = info.name;
+                Laya.Browser.window.qg.loadSubpackage({
+                    name: name,
+                    success: (res) => {
+                        this._pkgStep++;
+                        this.loadPkg_VIVO();
+                    },
+                    fail: (res) => {
+                        console.error(`load ${name} err: `, res);
+                    },
+                })
+            }
+        }
+        /**WX*/
+        export function loadPkg_Wechat() {
+            if (this._pkgStep == this.pkgInfo.length) {
+                if (this.completeFunc) {
+                    this.completeFunc();
+                }
+            } else {
+                let info = this.pkgInfo[this._pkgStep];
+                let name = info.name;
+                let root = info.root;
+                Laya.Browser.window.wx.loadSubpackage({
+                    name: name,
+                    success: (res) => {
+                        console.log(`load ${name} suc`);
+                        Laya.MiniAdpter.subNativeFiles[name] = root;
+                        Laya.MiniAdpter.nativefiles.push(root);
+                        this._pkgStep++;
+                        console.log("加载次数", this._pkgStep);
+                        this.loadPkg_wx();
+                    },
+                    fail: (res) => {
+                        console.error(`load ${name} err: `, res);
+                    },
+                });
+            }
+        }
+        export class _ResPrepareScene extends Admin._Scene {
+            moduleOnAwake(): void {
+                // 默认
+                _ResPrepare._pkgInfo = [
+                    { name: "sp1", root: "res" },
+                    { name: "sp2", root: "3DScene" },
+                    { name: "sp3", root: "3DPrefab" },
+                ];
+                _ResPrepare._pkgStep = 0;
+            };
+            moduleEventRegister(): void {
+            };
+            moduleOnStart(): void {
+                _ResPrepare._init();
+            };
+        }
+    }
 }
 export default lwg;
 // 全局控制
@@ -6897,6 +6976,9 @@ export let Elect = lwg.Elect;
 //场景相关 
 export let _PreLoad = lwg._PreLoad;
 export let _PreLoadScene = lwg._PreLoad._PreLoadScene;
+export let _ResPrepare = lwg._ResPrepare;
+export let _ResPrepareScene = lwg._ResPrepare._ResPrepareScene;
+
 export let Shop = lwg.Shop;
 export let ShopScene = lwg.Shop.ShopScene;
 export let VictoryBox = lwg.VictoryBox;
